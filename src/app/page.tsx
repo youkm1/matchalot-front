@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -5,7 +7,7 @@ export default function HomePage() {
       <div className="container mx-auto px-4 py-20">
         <div className="text-center">
           <h1 className="text-6xl font-bold text-gray-900 mb-6">
-            매치어랏 🎯
+            Match-a-lot 🎯
           </h1>
           <p className="text-2xl text-gray-600 mb-4 max-w-3xl mx-auto">
             숙명대학교 학습자료 매칭 플랫폼
@@ -17,12 +19,16 @@ export default function HomePage() {
           
           {/* CTA Buttons */}
           <div className="space-x-4 mb-16">
-            <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg text-lg transition-colors">
-              학습자료 둘러보기
-            </button>
-            <button className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white font-semibold py-3 px-8 rounded-lg text-lg transition-colors">
-              로그인하기
-            </button>
+            <Link href="/materials">
+              <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg text-lg transition-colors">
+                학습자료 둘러보기
+              </button>
+            </Link>
+            <Link href="/login">
+              <button className="border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white font-semibold py-3 px-8 rounded-lg text-lg transition-colors">
+                로그인하기
+              </button>
+            </Link>
           </div>
         </div>
       </div>
@@ -31,7 +37,7 @@ export default function HomePage() {
       <div className="bg-white py-20">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
-            왜 매치얼랏인가요?
+            왜 Match-a-lot인가요?
           </h2>
           
           <div className="grid md:grid-cols-3 gap-8">

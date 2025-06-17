@@ -14,7 +14,7 @@ export default function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
             <span className="text-2xl">🎯</span>
-            <span className="text-xl font-bold text-gray-900">매치얼랏</span>
+            <span className="text-xl font-bold text-gray-900">Match-a-lot</span>
           </Link>
 
           {/* Desktop Navigation */}
