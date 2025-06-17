@@ -13,7 +13,7 @@ export default function LoginPage() {
       
       // Google OAuth2 로그인 시도
       // 실제로는 Spring Boot OAuth2 엔드포인트로 리다이렉트
-      window.location.href = 'http://localhost:8080/oauth2/authorization/google';
+      window.location.href = 'http://localhost:8080/login/oauth2/code/google';
       
     } catch (err) {
       setIsLoading(false);
