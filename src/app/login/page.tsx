@@ -8,12 +8,10 @@ export default function LoginPage() {
 
   const handleGoogleLogin = async () => {
     try {
-      setIsLoading(true);
-      setError(''); // 이전 에러 메시지 지우기
+        setIsLoading(true);
+        setError(''); // 이전 에러 메시지 지우기
       
-      // Google OAuth2 로그인 시도
-      // 실제로는 Spring Boot OAuth2 엔드포인트로 리다이렉트
-      window.location.href = 'http://localhost:8080/login/oauth2/code/google';
+        window.location.href = 'http://localhost:8080/oauth2/authorization/google';
       
     } catch (err) {
       setIsLoading(false);
