@@ -1,11 +1,60 @@
 'use client'; //사용자와 상호작용 UI
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { authAPI } from '../../../lib/api';
+
+interface User {
+  Id: number;
+  nickname: string
+  eamil: string
+  trustScore: number;
+  createdAt: string
+}
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // 임시로 false
+  const [user, setUser] = useState<User | null>(null); 
+  const [isLoading, setIsLoading] = useState(true); 
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const currentUser = await authAPI.getCurrentUser();
+        setUser(currentUser);
+      } catch (error) {
+        console.log('User not authenticated');
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await authAPI.logout();
+      setUser(null);
+      window.location.href = '/login'; // 로그인 페이지로 리다이렉트
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
+  
+  const isLoggedIn = user !== null;
+
+  const getAvatarLetter = (nickname: string) => {
+    return nickname ? nickname.charAt(0) : 'U';
+  };
+
+  const getTrustScoreColor = (score: number) => {
+    if (score >= 3) return 'bg-green-100 text-green-800';
+    if (score >= 0) return 'bg-blue-100 text-blue-800';
+    return 'bg-red-100 text-red-800';
+  };
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
@@ -41,17 +90,22 @@ export default function Header() {
 
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            {isLoggedIn ? (
+            {isLoading ? (
+              // ✅ 로딩 상태
+              <div className="w-8 h-8 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600"></div>
+            ) : isLoggedIn && user ? (
               <>
-                {/* Logged in state */}
+                {/* ✅ 실제 사용자 정보 표시 */}
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center space-x-2">
                     <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                      <span className="text-blue-600 font-semibold text-sm">카</span>
+                      <span className="text-blue-600 font-semibold text-sm">
+                        {getAvatarLetter(user.nickname)}
+                      </span>
                     </div>
-                    <span className="text-gray-700 font-medium">카렌님</span>
-                    <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                      신뢰도 +3
+                    <span className="text-gray-700 font-medium">{user.nickname}님</span>
+                    <span className={`text-xs px-2 py-1 rounded-full ${getTrustScoreColor(user.trustScore)}`}>
+                      신뢰도 {user.trustScore > 0 ? '+' : ''}{user.trustScore}
                     </span>
                   </div>
                   <Link 
@@ -60,14 +114,17 @@ export default function Header() {
                   >
                     마이페이지
                   </Link>
-                  <button className="text-gray-600 hover:text-red-600 transition-colors">
+                  <button 
+                    onClick={handleLogout}
+                    className="text-gray-600 hover:text-red-600 transition-colors"
+                  >
                     로그아웃
                   </button>
                 </div>
               </>
             ) : (
               <>
-                {/* Logged out state */}
+                {/* 로그아웃 상태 */}
                 <Link 
                   href="/login"
                   className="text-gray-600 hover:text-blue-600 font-medium transition-colors"
@@ -127,15 +184,17 @@ export default function Header() {
               
               {/* Mobile Auth */}
               <div className="pt-4 border-t border-gray-200">
-                {isLoggedIn ? (
+                {isLoggedIn && user ? (
                   <div className="space-y-3">
                     <div className="flex items-center space-x-2 px-2">
                       <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                        <span className="text-blue-600 font-semibold text-sm">카</span>
+                        <span className="text-blue-600 font-semibold text-sm">
+                          {getAvatarLetter(user.nickname)}
+                        </span>
                       </div>
-                      <span className="text-gray-700 font-medium">카렌님</span>
-                      <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                        신뢰도 +3
+                      <span className="text-gray-700 font-medium">{user.nickname}님</span>
+                      <span className={`text-xs px-2 py-1 rounded-full ${getTrustScoreColor(user.trustScore)}`}>
+                        신뢰도 {user.trustScore > 0 ? '+' : ''}{user.trustScore}
                       </span>
                     </div>
                     <Link 
@@ -146,8 +205,11 @@ export default function Header() {
                       마이페이지
                     </Link>
                     <button 
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        handleLogout();
+                      }}
                       className="block text-gray-600 hover:text-red-600 font-medium px-2 py-1 transition-colors w-full text-left"
-                      onClick={() => setIsMenuOpen(false)}
                     >
                       로그아웃
                     </button>

@@ -9,7 +9,6 @@ interface UserInfo {
 }
 
 interface AuthData {
-  token: string;
   user: {
     id: number;
     nickname: string;
@@ -157,14 +156,11 @@ export default function AuthCallbackPage() {
     };
 
     const handleAuthSuccess = (data: AuthData, isNewUser: boolean) => {
-      // 토큰과 사용자 정보 저장
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
       
       setStatus('success');
       setMessage(isNewUser ? '회원가입이 완료되었습니다!' : '로그인이 완료되었습니다!');
 
-      // Analytics 트래킹
+      
       if (isNewUser) {
         console.log('New user signup:', data.user);
       } else {

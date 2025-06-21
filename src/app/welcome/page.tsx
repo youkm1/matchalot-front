@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { authAPI } from '../../../lib/api';
 
 export default function WelcomePage() {
   const router = useRouter();
@@ -10,10 +11,9 @@ export default function WelcomePage() {
   const [currentStep, setCurrentStep] = useState(0);
 
   useEffect(() => {
-    // 로컬스토리지에서 사용자 정보 가져오기
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    const user = await authAPI.getCurrentUser();
+    if (user) {
+      setUser(JSON.parse(user));
     } else {
       // 사용자 정보가 없으면 로그인 페이지로
       router.push('/login');
