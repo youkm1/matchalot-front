@@ -8,7 +8,6 @@ class ApiClient {
     this.baseURL = API_BASE_URL;
   }
 
-  // 🚀 CSRF 토큰 가져오기
   private async getCsrfToken(): Promise<string> {
     try {
       const response = await fetch(`${this.baseURL}/api/v1/auth/csrf-token`, {

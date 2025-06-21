@@ -5,19 +5,38 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { authAPI } from '../../../lib/api';
 
+
+interface User {
+  Id: number;
+  nickname: string;
+  email: string;
+  trustScore: number;
+  createdAt: string;
+}
+
 export default function WelcomePage() {
   const router = useRouter();
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<User | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
+  const [isLoading, setIsLoading] = useState(true); 
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    const user = await authAPI.getCurrentUser();
-    if (user) {
-      setUser(JSON.parse(user));
-    } else {
-      // 사용자 정보가 없으면 로그인 페이지로
-      router.push('/login');
-    }
+    const fetchUser = async () => {
+      try {
+        const userData = await authAPI.getCurrentUser();
+        setUser(userData);
+      } catch (error) {
+        console.error('Failed to get user:', error);
+        setError('사용자 정보를 불러올 수 없습니다.');
+        // 인증 실패시 로그인 페이지로 리다이렉트
+        router.push('/login');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUser();
   }, [router]);
 
   const steps = [
@@ -54,10 +73,35 @@ export default function WelcomePage() {
     router.push('/materials');
   };
 
-  if (!user) {
+  
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">사용자 정보를 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  
+  if (error || !user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="max-w-md w-full text-center">
+          <div className="text-4xl mb-4">😵</div>
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">
+            문제가 발생했습니다
+          </h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <button
+            onClick={() => router.push('/login')}
+            className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors"
+          >
+            로그인 페이지로 이동
+          </button>
+        </div>
       </div>
     );
   }
@@ -65,7 +109,7 @@ export default function WelcomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
       <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
-        {/* 사용자 정보 */}
+        {/* ✅ 실제 사용자 정보 표시 */}
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <span className="text-blue-600 font-bold text-xl">
@@ -76,6 +120,16 @@ export default function WelcomePage() {
             {user.nickname}님
           </h2>
           <p className="text-sm text-gray-500">{user.email}</p>
+          {/* ✅ 신뢰도 표시 */}
+          <div className="mt-2">
+            <span className={`text-xs px-2 py-1 rounded-full ${
+              user.trustScore >= 0 
+                ? 'bg-green-100 text-green-800' 
+                : 'bg-red-100 text-red-800'
+            }`}>
+              신뢰도 {user.trustScore > 0 ? '+' : ''}{user.trustScore}
+            </span>
+          </div>
         </div>
 
         {/* 온보딩 단계 */}
