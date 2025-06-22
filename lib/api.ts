@@ -61,14 +61,14 @@ class ApiClient {
     try {
       const response = await fetch(url, config);
       
-      
-      if (response.status === 401) {
+      if (response.status === 401 && !endpoint.includes('/logout')) {
+
         if (typeof window !== 'undefined') {
+          console.log('🔄 401 오류 - 로그인 페이지로 리다이렉트');
           window.location.href = '/login';
         }
         throw new Error('Unauthorized');
-      }
-      
+    }
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }

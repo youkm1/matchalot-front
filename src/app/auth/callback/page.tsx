@@ -34,6 +34,8 @@ export default function AuthCallbackPage() {
         // URL 파라미터 확인
         const success = searchParams.get('success');
         const error = searchParams.get('error');
+        const action = searchParams.get('action');
+        const isNewUser = searchParams.get('isNewUser');
         
         if (error) {
           setStatus('error');
@@ -41,13 +43,73 @@ export default function AuthCallbackPage() {
           return;
         }
 
-        if (success !== 'true') {
-          setStatus('error');
-          setMessage('잘못된 콜백 요청입니다.');
+        // Success Handler에서 바로 성공 처리된 경우
+        if (success === 'true') {
+          setStatus('success');
+          setMessage(isNewUser === 'true' ? '회원가입이 완료되었습니다!' : '로그인이 완료되었습니다!');
+          
+          // 사용자 정보 조회
+          try {
+            const userResponse = await fetch('/api/v1/auth/me', {
+              method: 'GET',
+              credentials: 'include',
+              headers: {
+                'Accept': 'application/json',
+              }
+            });
+
+            if (userResponse.ok) {
+              const userData = await userResponse.json();
+              setUserInfo({
+                email: userData.email,
+                nickname: userData.nickname
+              });
+            }
+          } catch (error) {
+            console.log('Failed to fetch user info:', error);
+          }
+
+          // 2초 후 리다이렉트
+          setTimeout(() => {
+            if (isNewUser === 'true') {
+              router.push('/welcome'); // 신규 사용자 온보딩
+            } else {
+              router.push('/materials'); // 기존 사용자 메인 페이지
+            }
+          }, 2000);
           return;
         }
 
-        // 1단계: 사용자 상태 확인
+        // Success Handler에서 회원가입 필요하다고 리다이렉트된 경우
+        if (action === 'signup') {
+          const email = searchParams.get('email');
+          const name = searchParams.get('name');
+          
+          if (email && name) {
+            setUserInfo({
+              email: decodeURIComponent(email),
+              nickname: decodeURIComponent(name)
+            });
+          }
+          
+          setStatus('signup');
+          setMessage('신규 사용자입니다. 회원가입을 진행합니다...');
+          await performSignup();
+          return;
+        }
+
+        // 위의 경우들에 해당하지 않으면 상태 확인 API 호출
+        await checkAuthStatus();
+
+      } catch (error) {
+        console.error('Auth callback error:', error);
+        setStatus('error');
+        setMessage('인증 처리 중 네트워크 오류가 발생했습니다.');
+      }
+    };
+
+    const checkAuthStatus = async () => {
+      try {
         const statusResponse = await fetch('/api/v1/auth/callback', {
           method: 'GET',
           credentials: 'include',
@@ -75,20 +137,27 @@ export default function AuthCallbackPage() {
           nickname: statusData.nickname
         });
 
-        if (statusData.action === 'login') {
-          setStatus('login');
-          setMessage('기존 사용자입니다. 로그인을 진행합니다...');
-          await performLogin();
+        if (statusData.action === 'login_complete') {
+          // 이미 로그인 완료됨
+          setStatus('success');
+          setMessage('로그인이 완료되었습니다!');
+          
+          setTimeout(() => {
+            router.push('/materials');
+          }, 2000);
         } else if (statusData.action === 'signup') {
           setStatus('signup');
           setMessage('신규 사용자입니다. 회원가입을 진행합니다...');
           await performSignup();
+        } else if (statusData.action === 'login') {
+          setStatus('login');
+          setMessage('기존 사용자입니다. 로그인을 진행합니다...');
+          await performLogin();
         }
-
       } catch (error) {
-        console.error('Auth callback error:', error);
+        console.error('Auth status check error:', error);
         setStatus('error');
-        setMessage('인증 처리 중 네트워크 오류가 발생했습니다.');
+        setMessage('인증 상태 확인 중 오류가 발생했습니다.');
       }
     };
 
@@ -96,6 +165,33 @@ export default function AuthCallbackPage() {
       try {
         setIsProcessing(true);
         
+        // 먼저 현재 사용자 정보 확인
+        try {
+          const currentUserResponse = await fetch('/api/v1/auth/me', {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+              'Accept': 'application/json',
+            }
+          });
+
+          if (currentUserResponse.ok) {
+            // 이미 로그인되어 있음!
+            const userData = await currentUserResponse.json();
+            console.log('Already logged in:', userData);
+            
+            handleAuthSuccess({
+              user: userData,
+              message: '로그인이 완료되었습니다!',
+              isNewUser: false
+            }, false);
+            return;
+          }
+        } catch (error) {
+          console.log('Not logged in yet, proceeding with login...');
+        }
+
+        // 로그인되어 있지 않은 경우에만 로그인 API 호출
         const loginResponse = await fetch('/api/v1/auth/login', {
           method: 'POST',
           credentials: 'include',
@@ -105,13 +201,22 @@ export default function AuthCallbackPage() {
           }
         });
 
-        const loginData = await loginResponse.json();
+        const contentType = loginResponse.headers.get('content-type');
+        let loginData;
+        
+        if (contentType && contentType.includes('application/json')) {
+          loginData = await loginResponse.json();
+        } else {
+          const textResponse = await loginResponse.text();
+          console.log('Non-JSON response:', textResponse);
+          loginData = { error: textResponse };
+        }
 
-        if (loginData.token) {
+        if (loginResponse.ok && loginData.user) { // token 대신 user로 체크
           handleAuthSuccess(loginData, false);
         } else {
           setStatus('error');
-          setMessage(loginData.message || '로그인에 실패했습니다.');
+          setMessage(loginData.message || loginData.error || '로그인에 실패했습니다.');
         }
       } catch (error) {
         console.error('Login error:', error);
@@ -125,7 +230,6 @@ export default function AuthCallbackPage() {
     const performSignup = async () => {
       try {
         setIsProcessing(true);
-        
         const signupResponse = await fetch('/api/v1/auth/signup', {
           method: 'POST',
           credentials: 'include',
@@ -135,16 +239,25 @@ export default function AuthCallbackPage() {
           }
         });
 
-        const signupData = await signupResponse.json();
+        const contentType = signupResponse.headers.get('content-type');
+        let signupData;
+    
+        if (contentType && contentType.includes('application/json')) {
+          signupData = await signupResponse.json();
+        } else {
+          const textResponse = await signupResponse.text();
+          console.log('Non-JSON response:', textResponse);
+          signupData = { error: textResponse };
+        }
 
-        if (signupData.token) {
+        if (signupResponse.ok && signupData.user) { // token 대신 user로 체크
           handleAuthSuccess(signupData, signupData.isNewUser);
         } else if (signupData.message?.includes('이미 가입된 사용자')) {
           setMessage('이미 가입된 사용자입니다. 로그인을 진행합니다...');
           await performLogin();
         } else {
           setStatus('error');
-          setMessage(signupData.message || '회원가입에 실패했습니다.');
+          setMessage(signupData.message || signupData.error || '회원가입에 실패했습니다.');
         }
       } catch (error) {
         console.error('Signup error:', error);
@@ -153,14 +266,20 @@ export default function AuthCallbackPage() {
       } finally {
         setIsProcessing(false);
       }
-    };
+    }; 
 
     const handleAuthSuccess = (data: AuthData, isNewUser: boolean) => {
-      
       setStatus('success');
       setMessage(isNewUser ? '회원가입이 완료되었습니다!' : '로그인이 완료되었습니다!');
 
-      
+      // 사용자 정보 업데이트
+      if (data.user) {
+        setUserInfo({
+          email: data.user.email,
+          nickname: data.user.nickname
+        });
+      }
+
       if (isNewUser) {
         console.log('New user signup:', data.user);
       } else {

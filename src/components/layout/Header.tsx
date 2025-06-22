@@ -18,30 +18,63 @@ export default function Header() {
   const [isLoading, setIsLoading] = useState(true); 
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const currentUser = await authAPI.getCurrentUser();
-        setUser(currentUser);
-      } catch (error) {
-        console.log('User not authenticated');
-        setUser(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, []);
-
-  const handleLogout = async () => {
+  const checkAuth = async () => {
+    console.log('🔍 Header: 인증 상태 확인 시작');
+    console.log('🔍 Header: 현재 쿠키:', document.cookie);
+    
     try {
-      await authAPI.logout();
-      setUser(null);
-      window.location.href = '/login'; // 로그인 페이지로 리다이렉트
+      const currentUser = await authAPI.getCurrentUser();
+      console.log('🔍 Header: 사용자 정보 받음:', currentUser);
+      setUser(currentUser);
     } catch (error) {
-      console.error('Logout failed:', error);
+      console.log('✅ Header: 인증 실패 (정상):', error);
+      setUser(null);
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  checkAuth();
+}, []);
+
+
+  const handleLogout = async () => {
+  console.log(' 로그아웃 시작');
+  
+  try {
+  
+    const response = await authAPI.logout();
+    
+    console.log('백엔드 로그아웃:', response.status);
+  } catch (error) {
+    console.warn('백엔드 로그아웃 실패:', error);
+  }
+
+  // 클라이언트 정리
+  setUser(null);
+  
+  const visibleCookies = document.cookie.split(";");
+  console.log('👀 보이는 쿠키들:', visibleCookies);
+  
+  visibleCookies.forEach(cookie => {
+    const eqPos = cookie.indexOf("=");
+    const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+    const cookieName = name.trim();
+    
+    if (cookieName) {
+      // 여러 경로에서 삭제 시도
+      const paths = ['/', '/api', '/oauth2'];
+      paths.forEach(path => {
+        document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${path};`;
+      });
+      console.log('🍪 일반 쿠키 삭제:', cookieName);
+    }
+  });
+  sessionStorage.clear();
+  localStorage.clear();
+  console.log('스토리지 클리어 후 홈페이지로 이동');
+  window.location.replace('/');
+};
 
   
   const isLoggedIn = user !== null;
