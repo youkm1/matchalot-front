@@ -43,9 +43,9 @@ export default function Header() {
   
   try {
   
-    const response = await authAPI.logout();
+    await authAPI.logout();
     
-    console.log('백엔드 로그아웃:', response.status);
+    console.log('백엔드 로그아웃');
   } catch (error) {
     console.warn('백엔드 로그아웃 실패:', error);
   }
@@ -53,27 +53,29 @@ export default function Header() {
   // 클라이언트 정리
   setUser(null);
   
-  const visibleCookies = document.cookie.split(";");
-  console.log('👀 보이는 쿠키들:', visibleCookies);
+  const allPossiblePaths = ['/', '/api', '/oauth2', '/auth'];
+  const allPossibleDomains = ['', 'localhost', '.localhost', '127.0.0.1'];
   
-  visibleCookies.forEach(cookie => {
-    const eqPos = cookie.indexOf("=");
-    const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-    const cookieName = name.trim();
+  document.cookie.split(';').forEach(cookie => {
+    const eqPos = cookie.indexOf('=');
+    const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
     
-    if (cookieName) {
-      // 여러 경로에서 삭제 시도
-      const paths = ['/', '/api', '/oauth2'];
-      paths.forEach(path => {
-        document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${path};`;
+    if (name) {
+      allPossiblePaths.forEach(path => {
+        allPossibleDomains.forEach(domain => {
+          const domainPart = domain ? `; domain=${domain}` : '';
+          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${path}${domainPart}; SameSite=Lax`;
+        });
       });
-      console.log('🍪 일반 쿠키 삭제:', cookieName);
     }
   });
+
   sessionStorage.clear();
   localStorage.clear();
-  console.log('스토리지 클리어 후 홈페이지로 이동');
-  window.location.replace('/');
+  setTimeout(() => {
+    console.log('🏠 홈페이지로 이동');
+    window.location.replace('/');
+  }, 5000000);
 };
 
   

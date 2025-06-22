@@ -40,7 +40,8 @@ class ApiClient {
 
     //  데이터 변경 작업에만 CSRF 토큰 추가
     const isModifyingRequest = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method);
-    if (isModifyingRequest) {
+    const isLogoutRequest = endpoint.includes('/logout');
+    if (isModifyingRequest && !isLogoutRequest) {
       try {
         const csrfToken = await this.getCsrfToken();
         if (csrfToken) {
@@ -127,7 +128,26 @@ export const apiClient = new ApiClient();
 
 export const authAPI = {
   getCurrentUser: () => apiClient.get('/api/v1/auth/me'),
-  logout: () => apiClient.post('/api/v1/auth/logout'),
+  logout: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/v1/auth/logout`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        credentials: 'include', // 쿠키만 포함
+      });
+      
+      if (response.ok) {
+        return await response.json();
+      }
+      throw new Error(`HTTP error! status: ${response.status}`);
+    } catch (error) {
+      console.error('Logout failed:', error);
+      throw error;
+    }
+  },
   handleCallback: () => apiClient.get('/api/v1/auth/callback'),
   getCsrfToken: () => apiClient.get('/api/v1/auth/csrf-token'),
 };
