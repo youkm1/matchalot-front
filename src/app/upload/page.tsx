@@ -61,12 +61,29 @@ export default function UploadPage() {
           ? examTypesResponse 
           : examTypesResponse.examTypes || [];
         
-        setSubjects(subjectsData.map((item: any) => 
-          typeof item === 'string' ? { id: item, name: item } : item
-        ));
-        setExamTypes(examTypesData.map((item: any) => 
-          typeof item === 'string' ? { id: item, name: item } : item
-        ));
+        setSubjects(subjectsData.map((item: any) => {
+        if (typeof item === 'string') {
+          return {
+            id: item,
+            name: item === 'KOREAN_WOMEN_HISTORY' ? '한국여성의역사' :
+                  item === 'ALGORITHM' ? '알고리즘' :
+                  item === 'DIGITAL_LOGIC_CIRCUIT' ? '디지털논리회로' :
+                  item === 'STATISTICS_INTRODUCTION' ? '통계학입문' : item
+          };
+        }
+        return item;
+      }));
+
+      setExamTypes(examTypesData.map((item: any) => {
+        if (typeof item === 'string') {
+          return {
+            id: item,
+            name: item === 'MIDTERM' ? '중간고사' :
+                  item === 'FINAL' ? '기말고사' : item
+          };
+        }
+        return item;
+      }));
         
       } catch (error) {
         console.error('데이터 로드 실패:', error);
@@ -74,13 +91,15 @@ export default function UploadPage() {
         
         // fallback 데이터
         setSubjects([
-          { id: 'PROGRAMMING_LANGUAGES', name: '프로그래밍언어' },
-          { id: 'COMPUTER_ARCHITECTURE', name: '컴퓨터구조' }
-        ]);
-        setExamTypes([
-          { id: 'MIDTERM', name: '중간고사' },
-          { id: 'FINAL', name: '기말고사' }
-        ]);
+        { id: 'KOREAN_WOMEN_HISTORY', name: '한국여성의역사' },
+        { id: 'ALGORITHM', name: '알고리즘' },
+        { id: 'DIGITAL_LOGIC_CIRCUIT', name: '디지털논리회로'},
+        { id: 'STATISTICS_INTRODUCTION', name: '통계학입문'}
+      ]);
+      setExamTypes([
+        { id: 'MIDTERM', name: '중간고사' },
+        { id: 'FINAL', name: '기말고사' }
+      ]);
       }
     };
     loadData();
@@ -173,7 +192,7 @@ export default function UploadPage() {
           number: q.number,
           content: q.content.trim(),
           answer: q.answer.trim(),
-          description: q.description?.trim() || undefined
+          explanation: q.description?.trim() || undefined
         }))
       };
 
