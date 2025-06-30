@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { matchAPI } from "../../lib/api";
+import { getDisplayName } from "@/utils/nickname";
 
 interface MatchResponse {
     id: number;
@@ -202,7 +203,7 @@ export default function MatchManagement() {
                 <div className="flex justify-between items-start mb-3">
                   <div>
                     <h3 className="font-semibold text-gray-900">
-                      {match.requesterNickname}님의 매칭 요청
+                      {getDisplayName(match.requesterNickname)}님의 매칭 요청
                     </h3>
                     <p className="text-sm text-gray-600">
                       {formatDate(match.createdAt)}
@@ -258,7 +259,7 @@ export default function MatchManagement() {
                 <div className="flex justify-between items-start mb-3">
                   <div>
                     <h3 className="font-semibold text-gray-900">
-                      {match.partnerNickname}님에게 보낸 요청
+                      {getDisplayName(match.partnerNickname)}님에게 보낸 요청
                     </h3>
                     <p className="text-sm text-gray-600">
                       {formatDate(match.createdAt)}
@@ -297,7 +298,7 @@ export default function MatchManagement() {
                 <div className="flex justify-between items-start mb-3">
                   <div>
                     <h3 className="font-semibold text-gray-900">
-                      {match.partnerNickname}님과의 매칭
+                      {getDisplayName(match.partnerNickname)}님과의 매칭
                     </h3>
                     <p className="text-sm text-gray-600">
                       {formatDate(match.updatedAt)}에 수락됨
@@ -343,7 +344,7 @@ export default function MatchManagement() {
                 <div className="flex justify-between items-start mb-3">
                   <div>
                     <h3 className="font-semibold text-gray-900">
-                      {match.partnerNickname}님과의 매칭
+                      {getDisplayName(match.partnerNickname)}님과의 매칭
                     </h3>
                     <p className="text-sm text-gray-600">
                       {formatDate(match.updatedAt)}에 완료됨

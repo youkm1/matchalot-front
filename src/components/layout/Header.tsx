@@ -3,15 +3,18 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { authAPI } from '../../../lib/api';
+import { getDisplayName } from '../../utils/nickname';
+
 
 interface User {
   Id: number;
   nickname: string;
   role: string;
-  eamil: string;
+  email: string;
   trustScore: number;
   createdAt: string;
 }
+
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -157,7 +160,7 @@ export default function Header() {
                         {getAvatarLetter(user.nickname)}
                       </span>
                     </div>
-                    <span className="text-gray-700 font-medium">{user.nickname}님</span>
+                    <span className="text-gray-700 font-medium">{getDisplayName(user.nickname)}님</span>
                     <span className={`text-xs px-2 py-1 rounded-full ${getTrustScoreColor(user.trustScore)}`}>
                       신뢰도 {user.trustScore > 0 ? '+' : ''}{user.trustScore}
                     </span>
@@ -258,7 +261,7 @@ export default function Header() {
                           {getAvatarLetter(user.nickname)}
                         </span>
                       </div>
-                      <span className="text-gray-700 font-medium">{user.nickname}님</span>
+                      <span className="text-gray-700 font-medium">{getDisplayName(user.nickname)}님</span>
                       <span className={`text-xs px-2 py-1 rounded-full ${getTrustScoreColor(user.trustScore)}`}>
                         신뢰도 {user.trustScore > 0 ? '+' : ''}{user.trustScore}
                       </span>

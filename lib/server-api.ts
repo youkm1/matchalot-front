@@ -52,8 +52,11 @@ export async function getServerSubjects(): Promise<Array<{id: string, name: stri
     const subjects = data.subjects || [];
     return subjects.map((subject: string) => ({
       id: subject,
-      name: subject === 'PROGRAMMING_LANGUAGES' ? '프로그래밍언어' : 
-            subject === 'COMPUTER_ARCHITECTURE' ? '컴퓨터구조' : subject
+      name: 
+        subject === 'KOREAN_WOMEN_HISTORY' ? '한국여성의역사' :
+        subject === 'ALGORITHM' ? '알고리즘' :
+        subject === 'DIGITAL_LOGIC_CIRCUIT' ? '디지털논리회로' :
+        subject === 'STATISTICS_INTRODUCTION' ? '통계학입문' : subject
     }));
   } catch (error) {
     console.error('Error fetching subjects:', error);

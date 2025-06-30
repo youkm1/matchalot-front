@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { matchAPI, studyMaterialAPI, authAPI } from '../../../../../lib/api';
+import { getDisplayName } from '@/utils/nickname';
 
 interface StudyMaterial {
   id: number;
@@ -227,7 +228,7 @@ export default function MatchRequestPage() {
               <div className="text-sm text-gray-600 space-y-1">
                 <p>📅 {targetMaterial.semesterDisplay}</p>
                 <p>📊 문제 수: {targetMaterial.questionCount}개</p>
-                <p>👤 업로더: {targetMaterial.uploaderNickname}</p>
+                <p>👤 업로더: {getDisplayName(targetMaterial.uploaderNickname)}</p>
                 <p>⭐ 신뢰도: {targetMaterial.uploaderTrustScore}점</p>
               </div>
 
@@ -326,7 +327,7 @@ export default function MatchRequestPage() {
                   <div className="text-xs text-gray-500 space-y-1">
                     <p>📅 {partner.semesterDisplay}</p>
                     <p>📊 {partner.questionCount}문제</p>
-                    <p>👤 {partner.uploaderNickname} (⭐{partner.uploaderTrustScore}점)</p>
+                    <p>👤 {getDisplayName(partner.uploaderNickname)} (⭐{partner.uploaderTrustScore}점)</p>
                   </div>
                   <button
                     onClick={() => router.push(`/matches/request/${partner.id}`)}

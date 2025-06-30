@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { authAPI, adminAPI } from '../../../lib/api';
+import { getDisplayName } from '@/utils/nickname';
 
 interface PendingMaterial {
   id: number;
@@ -146,7 +147,7 @@ export default function AdminPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">관리자 대시보드</h1>
         <p className="text-gray-600">
-          안녕하세요, {currentUser?.nickname}님! 관리자 권한으로 로그인되었습니다.
+          안녕하세요, {getDisplayName(currentUser?.nickname)}님! 관리자 권한으로 로그인되었습니다.
         </p>
       </div>
 

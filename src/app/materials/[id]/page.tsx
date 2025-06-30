@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { studyMaterialAPI, authAPI, matchAPI } from '../../../../lib/api';
 import Link from 'next/link';
+import { getDisplayName } from '@/utils/nickname';
 
 interface Question {
   number: number;
@@ -169,7 +170,7 @@ export default function MaterialDetailPage() {
             <div className="flex items-center gap-4">
               <div>
                 <span className="text-sm text-gray-500">업로더:</span>
-                <span className="ml-1 font-medium">{material.uploaderNickname}</span>
+                <span className="ml-1 font-medium">{getDisplayName(material.uploaderNickname)}</span>
                 {isOwner && (
                   <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
                     내 자료

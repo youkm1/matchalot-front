@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { authAPI } from '../../../lib/api';
+import { getDisplayName } from '@/utils/nickname';
 
 
 interface User {
@@ -117,7 +118,7 @@ export default function WelcomePage() {
             </span>
           </div>
           <h2 className="text-xl font-semibold text-gray-800">
-            {user.nickname}님
+            {getDisplayName(user.nickname)}님
           </h2>
           <p className="text-sm text-gray-500">{user.email}</p>
           {/* ✅ 신뢰도 표시 */}

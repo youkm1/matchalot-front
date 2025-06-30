@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { authAPI } from '../../../lib/api';
+import { authAPI, studyMaterialAPI, matchAPI } from '../../../lib/api';
+import { getDisplayName } from '../../utils/nickname';
 
 interface User {
   Id: number;
@@ -102,6 +103,13 @@ export default function ProfilePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [isWithdrawalModalOpen, setIsWithdrawalModalOpen] = useState(false);
+  
+  // 실제 활동 데이터
+  const [myMaterials, setMyMaterials] = useState<any[]>([]);
+  const [myMatches, setMyMatches] = useState<any[]>([]);
+  const [receivedRequests, setReceivedRequests] = useState<any[]>([]);
+  const [sentRequests, setSentRequests] = useState<any[]>([]);
+  const [statsLoading, setStatsLoading] = useState(true);
 
   useEffect(() => {
     loadUserProfile();
@@ -111,11 +119,52 @@ export default function ProfilePage() {
     try {
       const userData = await authAPI.getCurrentUser();
       setUser(userData);
+      
+      // 병렬로 활동 데이터 로드
+      await loadActivityData();
     } catch (error) {
       setError('프로필 정보를 불러올 수 없습니다. 로그인 후 다시 시도해주세요.');
       router.push('/login');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadActivityData = async () => {
+    try {
+      setStatsLoading(true);
+      
+      const [materials, matches, received, sent] = await Promise.all([
+        studyMaterialAPI.getMine(),
+        matchAPI.getMine(),
+        matchAPI.getReceived(),
+        matchAPI.getSent()
+      ]);
+
+      setMyMaterials(Array.isArray(materials) ? materials : []);
+      setMyMatches(Array.isArray(matches) ? matches : []);
+      setReceivedRequests(Array.isArray(received) ? received : []);
+      setSentRequests(Array.isArray(sent) ? sent : []);
+      
+    } catch (error) {
+      console.error('활동 데이터 로드 실패:', error);
+    } finally {
+      setStatsLoading(false);
+    }
+  };
+
+  const handleDeleteMaterial = async (materialId: number) => {
+    if (!confirm('정말로 이 자료를 삭제하시겠습니까?')) return;
+
+    try {
+      await studyMaterialAPI.delete(materialId.toString());
+      alert('자료가 삭제되었습니다.');
+      
+      // 목록 새로고침
+      await loadActivityData();
+    } catch (error) {
+      console.error('자료 삭제 실패:', error);
+      alert('자료 삭제 중 오류가 발생했습니다.');
     }
   };
 
@@ -231,7 +280,7 @@ export default function ProfilePage() {
               
               {/* 기본 정보 */}
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-1">{user.nickname}</h2>
+                <h2 className="text-2xl font-bold text-gray-900 mb-1">{getDisplayName(user.nickname)}</h2>
                 <p className="text-gray-600 mb-2">{user.email}</p>
                 <div className="flex items-center gap-3">
                   <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getRoleColor(user.role)}`}>
@@ -263,7 +312,7 @@ export default function ProfilePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">닉네임</label>
-              <p className="text-gray-900">{user.nickname}</p>
+              <p className="text-gray-900">{getDisplayName(user.nickname)}</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">이메일</label>
@@ -303,23 +352,11 @@ export default function ProfilePage() {
               ></div>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-            <div className="text-center p-3 bg-red-50 rounded-lg">
-              <div className="text-red-600 font-semibold">0-39점</div>
-              <div className="text-red-700">준회원</div>
-            </div>
-            <div className="text-center p-3 bg-blue-50 rounded-lg">
-              <div className="text-blue-600 font-semibold">40-79점</div>
-              <div className="text-blue-700">정회원</div>
-            </div>
-            <div className="text-center p-3 bg-green-50 rounded-lg">
-              <div className="text-green-600 font-semibold">80점 이상</div>
-              <div className="text-green-700">우수회원</div>
-            </div>
-          </div>
           <div className="mt-4 p-3 bg-gray-50 rounded-lg">
             <p className="text-xs text-gray-600">
-              💡 <strong>신뢰도 높이는 방법:</strong> 좋은 품질의 자료 업로드, 성공적인 매칭 완료, 다른 사용자들의 긍정적 평가
+              <strong>신뢰도 범위: -5 ~ 5 </strong>   [-5 미만 시 매칭이 불가합니다.]
+              <br></br>
+              💡 <strong>신뢰도 높이는 방법:</strong> Win-Win 시스템: 매칭 완료 시 서로에게 +1점을 부여합니다.
             </p>
           </div>
         </div>
@@ -327,27 +364,112 @@ export default function ProfilePage() {
         {/* 활동 통계 */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">활동 통계</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600">-</div>
-              <div className="text-sm text-blue-700">업로드한 자료</div>
+          {statsLoading ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="text-center p-4 bg-gray-50 rounded-lg animate-pulse">
+                  <div className="w-8 h-8 bg-gray-300 rounded mx-auto mb-2"></div>
+                  <div className="w-16 h-4 bg-gray-300 rounded mx-auto"></div>
+                </div>
+              ))}
             </div>
-            <div className="text-center p-4 bg-green-50 rounded-lg">
-              <div className="text-2xl font-bold text-green-600">-</div>
-              <div className="text-sm text-green-700">성공한 매칭</div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center p-4 bg-blue-50 rounded-lg">
+                <div className="text-2xl font-bold text-blue-600">{myMaterials.length}</div>
+                <div className="text-sm text-blue-700">업로드한 자료</div>
+              </div>
+              <div className="text-center p-4 bg-green-50 rounded-lg">
+                <div className="text-2xl font-bold text-green-600">
+                  {myMatches.filter(m => m.status === 'COMPLETED').length}
+                </div>
+                <div className="text-sm text-green-700">성공한 매칭</div>
+              </div>
+              <div className="text-center p-4 bg-purple-50 rounded-lg">
+                <div className="text-2xl font-bold text-purple-600">{receivedRequests.length}</div>
+                <div className="text-sm text-purple-700">받은 요청</div>
+              </div>
+              <div className="text-center p-4 bg-orange-50 rounded-lg">
+                <div className="text-2xl font-bold text-orange-600">{sentRequests.length}</div>
+                <div className="text-sm text-orange-700">보낸 요청</div>
+              </div>
             </div>
-            <div className="text-center p-4 bg-purple-50 rounded-lg">
-              <div className="text-2xl font-bold text-purple-600">-</div>
-              <div className="text-sm text-purple-700">받은 요청</div>
-            </div>
-            <div className="text-center p-4 bg-orange-50 rounded-lg">
-              <div className="text-2xl font-bold text-orange-600">-</div>
-              <div className="text-sm text-orange-700">보낸 요청</div>
-            </div>
+          )}
+        </div>
+
+        {/* 내가 업로드한 자료 */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">내가 업로드한 자료</h3>
+            <button
+              onClick={() => router.push('/upload')}
+              className="text-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg transition-colors"
+            >
+              + 자료 업로드
+            </button>
           </div>
-          <p className="text-xs text-gray-500 text-center mt-4">
-            📊 상세 통계는 추후 업데이트 예정입니다.
-          </p>
+          
+          {statsLoading ? (
+            <div className="space-y-3">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="animate-pulse">
+                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                </div>
+              ))}
+            </div>
+          ) : myMaterials.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <div className="text-4xl mb-2">📚</div>
+              <p>아직 업로드한 자료가 없습니다.</p>
+              <button
+                onClick={() => router.push('/upload')}
+                className="mt-3 text-blue-600 hover:text-blue-800 font-medium"
+              >
+                첫 자료 업로드하기 →
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {myMaterials.slice(0, 5).map((material: any) => (
+                <div key={material.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                  <div className="flex-1">
+                    <h4 className="font-medium text-gray-900">{material.title}</h4>
+                    <p className="text-sm text-gray-600">
+                      {material.subject} • {material.examType} • {material.questionCount}문제
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {new Date(material.createdAt).toLocaleDateString('ko-KR')}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => router.push(`/materials/${material.id}`)}
+                      className="text-sm text-blue-600 hover:text-blue-800"
+                    >
+                      보기
+                    </button>
+                    <button
+                      onClick={() => handleDeleteMaterial(material.id)}
+                      className="text-sm text-red-600 hover:text-red-800"
+                    >
+                      삭제
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {myMaterials.length > 5 && (
+                <div className="text-center pt-3">
+                  <button
+                    onClick={() => router.push('/materials?filter=my')}
+                    className="text-sm text-blue-600 hover:text-blue-800"
+                  >
+                    전체 보기 ({myMaterials.length}개) →
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* 빠른 액션 */}
@@ -381,14 +503,12 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* 위험 구역 */}
+        {/* 탈퇴 */}
         <div className="bg-white rounded-lg shadow-sm border border-red-200 p-6">
-          <h3 className="text-lg font-semibold text-red-700 mb-4">⚠️ 위험 구역</h3>
           <div className="p-4 bg-red-50 rounded-lg border border-red-200">
             <h4 className="font-semibold text-red-800 mb-2">회원 탈퇴</h4>
             <p className="text-red-700 text-sm mb-4">
-              탈퇴 시 모든 데이터가 삭제되며, 복구할 수 없습니다. 
-              신중하게 결정해주세요.
+              탈퇴 시 모든 데이터가 삭제되며, 복구할 수 없습니다!
             </p>
             <button
               onClick={() => setIsWithdrawalModalOpen(true)}

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { StudyMaterial } from '../../lib/server-api';
+import { getDisplayName } from '@/utils/nickname';
 
 
 interface Props {
@@ -65,7 +66,7 @@ export default function MaterialsList({ materials }: Props) {
           <div className="mb-4 p-3 bg-gray-50 rounded-lg">
             <div className="flex items-center justify-between text-sm">
               <span className="text-gray-700">
-                {material.uploaderNickname}
+                {getDisplayName(material.uploaderNickname)}
               </span>
               <span className="text-blue-600 font-medium">
                 신뢰도 {material.uploaderTrustScore}
