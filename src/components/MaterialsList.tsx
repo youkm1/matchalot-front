@@ -1,4 +1,3 @@
-// components/MaterialsList.tsx (새 파일 생성)
 import Link from 'next/link';
 import { StudyMaterial } from '../../lib/server-api';
 

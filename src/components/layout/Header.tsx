@@ -109,12 +109,7 @@ export default function Header() {
             >
               학습자료
             </Link>
-            <Link 
-              href="/matches" 
-              className="text-gray-600 hover:text-blue-600 font-medium transition-colors"
-            >
-              매칭관리
-            </Link>
+           
             <Link 
               href="/upload" 
               className="text-gray-600 hover:text-blue-600 font-medium transition-colors"

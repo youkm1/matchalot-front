@@ -45,7 +45,16 @@ export async function getServerSubjects(): Promise<Array<{id: string, name: stri
       cache: 'force-cache', // 과목 목록은 캐시 가능
     });
     
-    return response.ok ? await response.json() : [];
+    if (!response.ok) return [];
+    
+    const data = await response.json();
+    // 백엔드 응답 형식에 맞게 파싱
+    const subjects = data.subjects || [];
+    return subjects.map((subject: string) => ({
+      id: subject,
+      name: subject === 'PROGRAMMING_LANGUAGES' ? '프로그래밍언어' : 
+            subject === 'COMPUTER_ARCHITECTURE' ? '컴퓨터구조' : subject
+    }));
   } catch (error) {
     console.error('Error fetching subjects:', error);
     return [];
@@ -56,10 +65,18 @@ export async function getServerExamTypes(): Promise<Array<{id: string, name: str
   try {
     const response = await fetch(`${API_URL}/api/v1/study-materials/exam-types`, {
       headers: { 'Accept': 'application/json' },
-      cache: 'force-cache', // 시험 유형도 캐시 가능
+      cache: 'force-cache',
     });
     
-    return response.ok ? await response.json() : [];
+    if (!response.ok) return [];
+    
+    const data = await response.json();
+    const examTypes = data.examTypes || [];
+    return examTypes.map((type: string) => ({
+      id: type,
+      name: type === 'MIDTERM' ? '중간고사' : 
+            type === 'FINAL' ? '기말고사' : type
+    }));
   } catch (error) {
     console.error('Error fetching exam types:', error);
     return [];

@@ -1,6 +1,21 @@
+'use client'
 import Link from "next/link";
+import { useEffect } from "react";
+import { authAPI } from "../../lib/api";
 
 export default function HomePage() {
+  useEffect(() => {
+    const initializeCsrfToken = async () => {
+      try {
+        await authAPI.getCsrfToken();
+        console.log("csrf 토큰!!");
+
+      } catch (error) {
+        console.warn("csrf 토큰 생성 실패: ", error);
+      }
+    };
+    initializeCsrfToken();
+  }, []);
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Hero Section */}

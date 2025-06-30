@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { authAPI } from "../../../lib/api";
+import MatchManagement from "../../components/MatchManagement";
 
 interface User{
     Id:number;
@@ -64,7 +65,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-2xl mx-auto px-4">
+      <div className="max-w-4xl mx-auto px-4">
         {/* 헤더 */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <div className="flex items-center space-x-4">
@@ -93,87 +94,89 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* 신뢰도 상세 */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">신뢰도 현황</h2>
-          
-          <div className="space-y-4">
-            {/* 신뢰도 점수 */}
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">현재 신뢰도</span>
-              <span className={`text-2xl font-bold ${trustLevel.color}`}>
-                {user.trustScore > 0 ? '+' : ''}{user.trustScore}점
-              </span>
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* 왼쪽 컬럼: 개인 정보 & 통계 */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* 신뢰도 상세 */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">신뢰도 현황</h2>
+              
+              <div className="space-y-4">
+                {/* 신뢰도 점수 */}
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">현재 신뢰도</span>
+                  <span className={`text-2xl font-bold ${trustLevel.color}`}>
+                    {user.trustScore > 0 ? '+' : ''}{user.trustScore}점
+                  </span>
+                </div>
+
+                {/* 신뢰도 바 */}
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className={`h-2 rounded-full ${
+                      user.trustScore >= 0 ? 'bg-green-500' : 'bg-red-500'
+                    }`}
+                    style={{ 
+                      width: `${Math.min(Math.max((user.trustScore + 5) * 10, 0), 100)}%` 
+                    }}
+                  ></div>
+                </div>
+
+                {/* 신뢰도 설명 */}
+                <div className="text-sm text-gray-600">
+                  <p>• 신뢰도는 -5점부터 +5점까지 가능합니다</p>
+                  <p>• 좋은 매칭 완료 시 +1점, 문제 발생 시 -1점</p>
+                  <p>• 신뢰도 0점 이상일 때 매칭 참여 가능합니다</p>
+                </div>
+              </div>
             </div>
 
-            {/* 신뢰도 바 */}
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
-                className={`h-2 rounded-full ${
-                  user.trustScore >= 0 ? 'bg-green-500' : 'bg-red-500'
-                }`}
-                style={{ 
-                  width: `${Math.min(Math.max((user.trustScore + 5) * 10, 0), 100)}%` 
-                }}
-              ></div>
+            {/* 활동 통계 */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">활동 통계</h2>
+              
+              <div className="space-y-4">
+                <div className="text-center p-4 bg-blue-50 rounded-lg">
+                  <div className="text-2xl font-bold text-blue-600">📚</div>
+                  <div className="text-lg font-semibold text-gray-900">업로드한 족보</div>
+                  <div className="text-gray-600">준비 중</div>
+                </div>
+                
+                <div className="text-center p-4 bg-green-50 rounded-lg">
+                  <div className="text-2xl font-bold text-green-600">🤝</div>
+                  <div className="text-lg font-semibold text-gray-900">완료된 매칭</div>
+                  <div className="text-gray-600">준비 중</div>
+                </div>
+              </div>
             </div>
 
-            {/* 신뢰도 설명 */}
-            <div className="text-sm text-gray-600">
-              <p>• 신뢰도는 -5점부터 +5점까지 가능합니다</p>
-              <p>• 좋은 매칭 완료 시 +1점, 문제 발생 시 -1점</p>
-              <p>• 신뢰도 0점 이상일 때 매칭 참여 가능합니다</p>
+            {/* 빠른 액션 */}
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">빠른 액션</h2>
+              
+              <div className="space-y-3">
+                <a 
+                  href="/materials"
+                  className="block p-4 bg-blue-50 rounded-lg text-center hover:bg-blue-100 transition-colors"
+                >
+                  <div className="text-2xl mb-2">📖</div>
+                  <div className="font-semibold text-blue-900">학습자료 보기</div>
+                </a>
+                
+                <a 
+                  href="/upload"
+                  className="block p-4 bg-green-50 rounded-lg text-center hover:bg-green-100 transition-colors"
+                >
+                  <div className="text-2xl mb-2">📤</div>
+                  <div className="font-semibold text-green-900">족보 업로드</div>
+                </a>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* 활동 통계 */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">활동 통계</h2>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600">📚</div>
-              <div className="text-lg font-semibold text-gray-900">업로드한 족보</div>
-              <div className="text-gray-600">준비 중</div>
-            </div>
-            
-            <div className="text-center p-4 bg-green-50 rounded-lg">
-              <div className="text-2xl font-bold text-green-600">🤝</div>
-              <div className="text-lg font-semibold text-gray-900">완료된 매칭</div>
-              <div className="text-gray-600">준비 중</div>
-            </div>
-          </div>
-        </div>
-
-        {/* 빠른 액션 */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">빠른 액션</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <a 
-              href="/materials"
-              className="block p-4 bg-blue-50 rounded-lg text-center hover:bg-blue-100 transition-colors"
-            >
-              <div className="text-2xl mb-2">📖</div>
-              <div className="font-semibold text-blue-900">학습자료 보기</div>
-            </a>
-            
-            <a 
-              href="/upload"
-              className="block p-4 bg-green-50 rounded-lg text-center hover:bg-green-100 transition-colors"
-            >
-              <div className="text-2xl mb-2">📤</div>
-              <div className="font-semibold text-green-900">족보 업로드</div>
-            </a>
-            
-            <a 
-              href="/matches"
-              className="block p-4 bg-purple-50 rounded-lg text-center hover:bg-purple-100 transition-colors"
-            >
-              <div className="text-2xl mb-2">🔄</div>
-              <div className="font-semibold text-purple-900">매칭 관리</div>
-            </a>
+          {/* 오른쪽 컬럼: 매칭 관리 */}
+          <div className="lg:col-span-2">
+            <MatchManagement />
           </div>
         </div>
       </div>

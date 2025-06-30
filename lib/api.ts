@@ -31,14 +31,13 @@ class ApiClient {
     const url = `${this.baseURL}${endpoint}`;
     const method = (options.method || 'GET').toUpperCase();
     
-    
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
       ...(options.headers as Record<string, string> || {}),
     };
 
-    //  데이터 변경 작업에만 CSRF 토큰 추가
+    // 데이터 변경 작업에만 CSRF 토큰 추가
     const isModifyingRequest = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method);
     const isLogoutRequest = endpoint.includes('/logout');
     if (isModifyingRequest && !isLogoutRequest) {
@@ -55,7 +54,7 @@ class ApiClient {
     const config: RequestInit = {
       method,
       headers,
-      credentials: 'include', //  httpOnly 쿠키 자동 포함
+      credentials: 'include',
       ...options,
     };
 
@@ -63,31 +62,25 @@ class ApiClient {
       const response = await fetch(url, config);
       
       if (response.status === 401 && !endpoint.includes('/logout')) {
-
-        if (typeof window !== 'undefined') {
-          console.log('🔄 401 오류 - 로그인 페이지로 리다이렉트');
-          window.location.href = '/login';
-        }
+        
         throw new Error('Unauthorized');
-    }
+      }
+      
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      // 응답이 JSON인지 확인
       const contentType = response.headers.get('content-type');
       if (contentType && contentType.includes('application/json')) {
         return await response.json();
       }
       
-      // JSON이 아닌 경우 텍스트로 반환
       return await response.text();
     } catch (error) {
       console.error('API request failed:', error);
       throw error;
     }
   }
-
 
   get(endpoint: string, options: RequestInit = {}) {
     return this.request(endpoint, { method: 'GET', ...options });
@@ -122,9 +115,7 @@ class ApiClient {
   }
 }
 
-
 export const apiClient = new ApiClient();
-
 
 export const authAPI = {
   getCurrentUser: () => apiClient.get('/api/v1/auth/me'),
@@ -136,7 +127,7 @@ export const authAPI = {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        credentials: 'include', // 쿠키만 포함
+        credentials: 'include',
       });
       
       if (response.ok) {
@@ -152,12 +143,9 @@ export const authAPI = {
   getCsrfToken: () => apiClient.get('/api/v1/auth/csrf-token'),
 };
 
-
 export const studyMaterialAPI = {
-  // 업로드
   upload: (data: any) => apiClient.post('/api/v1/study-materials', data),
   
-  // 조회
   getAll: (params?: Record<string, any>) => {
     const queryString = params ? new URLSearchParams(params).toString() : '';
     return apiClient.get(`/api/v1/study-materials${queryString ? `?${queryString}` : ''}`);
@@ -165,10 +153,8 @@ export const studyMaterialAPI = {
   getById: (id: string) => apiClient.get(`/api/v1/study-materials/${id}`),
   getMine: () => apiClient.get('/api/v1/study-materials/my'),
   
-
   update: (id: string, data: any) => apiClient.put(`/api/v1/study-materials/${id}`, data),
   delete: (id: string) => apiClient.delete(`/api/v1/study-materials/${id}`),
-  
   
   getSubjects: () => apiClient.get('/api/v1/study-materials/subjects'),
   getExamTypes: () => apiClient.get('/api/v1/study-materials/exam-types'),
@@ -176,8 +162,12 @@ export const studyMaterialAPI = {
 
 
 export const matchAPI = {
-  
-  request: (data: any) => apiClient.post('/api/v1/match/request', data),
+  // ✅ 수정: POST /api/v1/match/request/{materialId}
+  request: (materialId: string, data: any) => {
+    console.log('🔥 API 함수 - materialId:', materialId);
+    console.log('🔥 API 함수 - data:', data);
+    return apiClient.post('/api/v1/match/request/' + materialId, data);
+  },
   
   // 잠재적 파트너 조회
   getPotentialPartners: (materialId: string) => 
@@ -198,7 +188,6 @@ export const matchAPI = {
   cleanup: () => apiClient.post('/api/v1/match/cleanup'),
 };
 
-// 🎯 타입 정의 (선택사항)
 export interface ApiResponse<T = any> {
   data?: T;
   message?: string;
@@ -212,19 +201,16 @@ export interface ErrorResponse {
 }
 
 export const ApiUtils = {
-  
   buildQueryString: (params: Record<string, any>): string => {
     const filtered = Object.entries(params).filter(([_, value]) => value !== undefined && value !== null);
     return new URLSearchParams(filtered.map(([key, value]) => [key, String(value)])).toString();
   },
-  
   
   getErrorMessage: (error: any): string => {
     if (error?.response?.data?.message) return error.response.data.message;
     if (error?.message) return error.message;
     return '알 수 없는 오류가 발생했습니다.';
   },
-  
   
   isAuthenticated: async (): Promise<boolean> => {
     try {
