@@ -6,10 +6,11 @@ import { authAPI } from '../../../lib/api';
 
 interface User {
   Id: number;
-  nickname: string
-  eamil: string
+  nickname: string;
+  role: string;
+  eamil: string;
   trustScore: number;
-  createdAt: string
+  createdAt: string;
 }
 
 export default function Header() {
@@ -91,6 +92,15 @@ export default function Header() {
     return 'bg-red-100 text-red-800';
   };
 
+  const getRoleColer = (role:string) => {
+    switch(role) {
+      case 'ADMIN': return 'bg-purple-100 text-purple-800';
+      case 'MEMBER': return 'bg-green-100 text-green-800';
+      case 'PENDING': return 'bg-yellow-100 text-yellow-800';
+      default: return 'bg-gray-100 text-gray-800'; 
+    }
+  };
+
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
       <div className="container mx-auto px-4">
@@ -109,16 +119,30 @@ export default function Header() {
             >
               학습자료
             </Link>
-           
+            <Link 
+              href="/matches"
+              className="text-gray-600 hover:text-blue-600 font-medium transition-colors"
+            >
+              매칭관리
+            </Link>
             <Link 
               href="/upload" 
               className="text-gray-600 hover:text-blue-600 font-medium transition-colors"
             >
               자료업로드
             </Link>
+            {/* amdin link!!! - only admin can see~*/}
+            {user?.role === 'ADMIN' && (
+              <Link
+                href="/admin"
+                className="text-purple-600 hover:text-purple-700 font-medium transition-colors flex items-center gap-1"
+              >
+                관리자 기능
+              </Link>
+            )}
           </nav>
 
-          {/* Desktop Auth Buttons */}
+          {/* Desktop Auth  */}
           <div className="hidden md:flex items-center space-x-4">
             {isLoading ? (
               // ✅ 로딩 상태
@@ -211,6 +235,18 @@ export default function Header() {
               >
                 자료업로드
               </Link>
+
+              {/* 모바일 관리자 링크 - role이 ADMIN인 경우만 표시 */}
+              {user?.role === 'ADMIN' && (
+                <Link 
+                  href="/admin"
+                  className="text-purple-600 hover:text-purple-700 font-medium px-2 py-1 transition-colors flex items-center gap-1"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <span>👑</span>
+                  관리자 페이지
+                </Link>
+              )}
               
               {/* Mobile Auth */}
               <div className="pt-4 border-t border-gray-200">

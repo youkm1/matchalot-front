@@ -139,6 +139,8 @@ export const authAPI = {
       throw error;
     }
   },
+  withdrawalRequest: (reason: string) => apiClient.post('/api/v1/auth/me/withdrawal-request', { reason }),
+  deleteAccount: () => apiClient.delete('/api/v1/auth/me'),
   handleCallback: () => apiClient.get('/api/v1/auth/callback'),
   getCsrfToken: () => apiClient.get('/api/v1/auth/csrf-token'),
 };
@@ -188,6 +190,24 @@ export const matchAPI = {
   cleanup: () => apiClient.post('/api/v1/match/cleanup'),
 };
 
+export const adminAPI = {
+  // 승인 대기 자료 관리
+  getPendingMaterials: () => apiClient.get('/api/v1/admin/materials/pending'),
+  approveMaterial: (materialId: number) => apiClient.put(`/api/v1/admin/materials/${materialId}/approve`),
+  rejectMaterial: (materialId: number, reason: string) => 
+    apiClient.put(`/api/v1/admin/materials/${materialId}/reject`, { reason }),
+  
+  // 사용자 관리
+  getAllUsers: (role?: string) => {
+    const queryString = role ? `?role=${role}` : '';
+    return apiClient.get(`/api/v1/admin/users${queryString}`);
+  },
+  forceDeleteUser: (userId: number, reason: string) => 
+    apiClient.delete(`/api/v1/admin/users/${userId}`, { 
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reason })
+    }),
+};
 export interface ApiResponse<T = any> {
   data?: T;
   message?: string;
