@@ -170,8 +170,7 @@ export default function ProfilePage() {
 
   const handleWithdrawal = async (reason: string) => {
     try {
-      // 1단계: 탈퇴 사유 전송 (새로운 API 사용)
-      await authAPI.withdrawalRequest(reason);
+    
 
       // 2단계: 실제 탈퇴 처리 (새로운 API 사용)
       await authAPI.deleteAccount();

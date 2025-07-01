@@ -207,7 +207,22 @@ export const authAPI = {
       throw error;
     }
   },
+  deleteAccount: async () => {
+  const response = await fetch('/api/v1/auth/delete', {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      // CSRF 토큰이 필요하면 추가
+    },
+    credentials: 'include'
+  });
   
+  if (!response.ok) {
+    throw new Error('계정 삭제 실패');
+  }
+  
+  return response.json();
+  },
   handleCallback: () => apiClient.get('/api/v1/auth/callback'),
   getCsrfToken: () => apiClient.get('/api/v1/auth/csrf-token'),
 };
