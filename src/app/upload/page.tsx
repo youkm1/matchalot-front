@@ -184,7 +184,8 @@ export default function UploadPage() {
     try {
       const uploadData = {
         subject: formData.subject,
-        examType: formData.examType,
+        examType: formData.examType === 'MIDTERM' ? '중간고사' : 
+            formData.examType === 'FINAL' ? '기말고사' : formData.examType,
         year: formData.year,
         season: formData.season,
         title: formData.title.trim(),
