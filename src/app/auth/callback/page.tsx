@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
@@ -20,18 +21,19 @@ interface AuthData {
   message: string;
 }
 
-export default function AuthCallbackPage() {
+// 기존 로직을 별도 컴포넌트로 분리
+function AuthCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [status, setStatus] = useState('checking'); // checking, login, signup, success, error
+  const [status, setStatus] = useState('checking');
   const [message, setMessage] = useState('');
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // 여기에 기존의 모든 useEffect와 함수들을 그대로 복사
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // URL 파라미터 확인
         const success = searchParams.get('success');
         const error = searchParams.get('error');
         const action = searchParams.get('action');
@@ -43,12 +45,10 @@ export default function AuthCallbackPage() {
           return;
         }
 
-        // Success Handler에서 바로 성공 처리된 경우
         if (success === 'true') {
           setStatus('success');
           setMessage(isNewUser === 'true' ? '회원가입이 완료되었습니다!' : '로그인이 완료되었습니다!');
           
-          // 사용자 정보 조회
           try {
             const userResponse = await fetch('/api/v1/auth/me', {
               method: 'GET',
@@ -69,18 +69,16 @@ export default function AuthCallbackPage() {
             console.log('Failed to fetch user info:', error);
           }
 
-          // 2초 후 리다이렉트
           setTimeout(() => {
             if (isNewUser === 'true') {
-              router.push('/welcome'); // 신규 사용자 온보딩
+              router.push('/welcome');
             } else {
-              router.push('/materials'); // 기존 사용자 메인 페이지
+              router.push('/materials');
             }
           }, 2000);
           return;
         }
 
-        // Success Handler에서 회원가입 필요하다고 리다이렉트된 경우
         if (action === 'signup') {
           const email = searchParams.get('email');
           const name = searchParams.get('name');
@@ -98,7 +96,6 @@ export default function AuthCallbackPage() {
           return;
         }
 
-        // 위의 경우들에 해당하지 않으면 상태 확인 API 호출
         await checkAuthStatus();
 
       } catch (error) {
@@ -131,14 +128,12 @@ export default function AuthCallbackPage() {
           return;
         }
 
-        // 사용자 정보 저장
         setUserInfo({
           email: statusData.email,
           nickname: statusData.nickname
         });
 
         if (statusData.action === 'login_complete') {
-          // 이미 로그인 완료됨
           setStatus('success');
           setMessage('로그인이 완료되었습니다!');
           
@@ -165,7 +160,6 @@ export default function AuthCallbackPage() {
       try {
         setIsProcessing(true);
         
-        // 먼저 현재 사용자 정보 확인
         try {
           const currentUserResponse = await fetch('/api/v1/auth/me', {
             method: 'GET',
@@ -176,7 +170,6 @@ export default function AuthCallbackPage() {
           });
 
           if (currentUserResponse.ok) {
-            // 이미 로그인되어 있음!
             const userData = await currentUserResponse.json();
             console.log('Already logged in:', userData);
             
@@ -191,7 +184,6 @@ export default function AuthCallbackPage() {
           console.log('Not logged in yet, proceeding with login...');
         }
 
-        // 로그인되어 있지 않은 경우에만 로그인 API 호출
         const loginResponse = await fetch('/api/v1/auth/login', {
           method: 'POST',
           credentials: 'include',
@@ -212,7 +204,7 @@ export default function AuthCallbackPage() {
           loginData = { error: textResponse };
         }
 
-        if (loginResponse.ok && loginData.user) { // token 대신 user로 체크
+        if (loginResponse.ok && loginData.user) {
           handleAuthSuccess(loginData, false);
         } else {
           setStatus('error');
@@ -250,7 +242,7 @@ export default function AuthCallbackPage() {
           signupData = { error: textResponse };
         }
 
-        if (signupResponse.ok && signupData.user) { // token 대신 user로 체크
+        if (signupResponse.ok && signupData.user) {
           handleAuthSuccess(signupData, signupData.isNewUser);
         } else if (signupData.message?.includes('이미 가입된 사용자')) {
           setMessage('이미 가입된 사용자입니다. 로그인을 진행합니다...');
@@ -272,7 +264,6 @@ export default function AuthCallbackPage() {
       setStatus('success');
       setMessage(isNewUser ? '회원가입이 완료되었습니다!' : '로그인이 완료되었습니다!');
 
-      // 사용자 정보 업데이트
       if (data.user) {
         setUserInfo({
           email: data.user.email,
@@ -286,12 +277,11 @@ export default function AuthCallbackPage() {
         console.log('User login:', data.user);
       }
 
-      // 2초 후 리다이렉트
       setTimeout(() => {
         if (isNewUser) {
-          router.push('/welcome'); // 신규 사용자 온보딩
+          router.push('/welcome');
         } else {
-          router.push('/materials'); // 기존 사용자 메인 페이지
+          router.push('/materials');
         }
       }, 2000);
     };
@@ -299,6 +289,7 @@ export default function AuthCallbackPage() {
     handleAuthCallback();
   }, [router, searchParams]);
 
+  // 기존의 모든 return 문들도 그대로 복사
   if (status === 'checking') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -382,4 +373,21 @@ export default function AuthCallbackPage() {
   }
 
   return null;
+}
+
+// Suspense로 감싼 메인 컴포넌트
+export default function AuthCallbackPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">로딩 중...</h2>
+          <p className="text-gray-600">잠시만 기다려주세요.</p>
+        </div>
+      </div>
+    }>
+      <AuthCallbackContent />
+    </Suspense>
+  );
 }
