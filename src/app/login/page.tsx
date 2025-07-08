@@ -38,7 +38,7 @@ export default function LoginPage() {
     setIsLoading(true);
     setError(''); // 이전 에러 메시지 지우기
 
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://matchalot.duckdns.org';
     window.location.href = `${API_BASE_URL}/oauth2/authorization/google`;
   };
 
