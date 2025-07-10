@@ -7,6 +7,9 @@ export async function middleware(request: NextRequest) {
     const protectedPaths = ['/materials', '/matches', '/upload'];
     const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path));
 
+    if (pathname.startsWith('/auth/callback')) {
+        return NextResponse.next();
+    }
     if (isProtectedPath) {
         const authToken = request.cookies.get('auth-token');
 
