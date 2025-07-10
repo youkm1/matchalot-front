@@ -1,6 +1,6 @@
 // lib/api.ts - CSRF 토큰 지원 버전 (문법 오류 수정)
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const API_BASE_URL = '';
 
 // 🔧 확장된 옵션 타입 정의 (클래스 밖으로 이동)
 interface ExtendedRequestInit extends RequestInit {
