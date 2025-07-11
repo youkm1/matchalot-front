@@ -56,7 +56,7 @@ export async function getServerSubjects(): Promise<Array<{id: string, name: stri
         subject === 'KOREAN_WOMEN_HISTORY' ? '한국여성의역사' :
         subject === 'ALGORITHM' ? '알고리즘' :
         subject === 'DIGITAL_LOGIC_CIRCUIT' ? '디지털논리회로' :
-        subject === 'STATISTICS_INTRODUCTION' ? '통계학입문' : subject
+        subject === 'MODERN THOUGH' ? '보고듣고만지는현대사상' : subject
     }));
   } catch (error) {
     console.error('Error fetching subjects:', error);
