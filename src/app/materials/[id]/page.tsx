@@ -1,40 +1,13 @@
+// src/app/materials/[id]/page.tsx 수정된 부분
+
 'use client'
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { studyMaterialAPI, authAPI, matchAPI } from '../../../../lib/api';
+import { StudyMaterial, User } from '../../../../lib/server-api';
 import Link from 'next/link';
 import { getDisplayName } from '@/utils/nickname';
-
-interface Question {
-  number: number;
-  content: string;
-  answer: string;
-  explanation: string;
-}
-
-interface StudyMaterial {
-  id: number;
-  title: string;
-  subject: string;
-  examType: string;
-  year: number;
-  season: string;
-  semesterDisplay: string;
-  questionCount: number;
-  uploaderNickname: string;
-  uploaderId: number; // 추가된 필드
-  createdAt: string;
-  displayTitle: string;
-  questions: Question[];
-}
-
-interface User {
-  Id: number;
-  nickname: string;
-  email: string;
-  trustScore: number;
-}
 
 export default function MaterialDetailPage() {
   const params = useParams();
@@ -47,31 +20,44 @@ export default function MaterialDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showAnswers, setShowAnswers] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         
-        // 현재 사용자 정보 가져오기
-        const user = await authAPI.getCurrentUser();
-        setCurrentUser(user);
+        // 1단계: 로그인 상태 확인 (실패해도 계속 진행)
+        let user = null;
+        try {
+          user = await authAPI.getCurrentUser();
+          setCurrentUser(user);
+          setIsLoggedIn(true);
+        } catch (authError) {
+          console.log('비로그인 사용자');
+          setIsLoggedIn(false);
+        }
 
-        // 자료 정보 가져오기
+        // 2단계: 자료 정보 가져오기 (로그인 여부와 상관없이)
         const data = await studyMaterialAPI.getById(materialId);
         setMaterial(data);
 
-        // 🔒 매칭 완료 여부 확인
-        // TODO: 실제 매칭 완료 여부 확인 API 구현 후 수정
-        // const hasCompletedMatch = await matchAPI.checkAccess(materialId);
-        
-        // 임시: 자신이 업로드한 자료면 접근 허용
-        const isOwner = data.uploaderId === user.Id;
-        setHasAccess(isOwner);
+        // 3단계: 접근 권한 확인 (로그인한 경우만)
+        if (user) {
+          const isOwner = data.uploaderId === user.Id;
+          // TODO: 실제 매칭 완료 여부도 확인
+          setHasAccess(isOwner);
+        } else {
+          setHasAccess(false);
+        }
         
       } catch (err) {
         console.error('족보 조회 실패:', err);
-        setError('족보를 불러올 수 없습니다.');
+        if (!isLoggedIn) {
+          setError('로그인이 필요합니다. 로그인 후 다시 시도해주세요.');
+        } else {
+          setError('족보를 불러올 수 없습니다.');
+        }
       } finally {
         setLoading(false);
       }
@@ -83,12 +69,23 @@ export default function MaterialDetailPage() {
   }, [materialId]);
 
   const handleMatchRequest = () => {
+    if (!isLoggedIn) {
+      // 로그인하지 않은 경우 로그인 페이지로
+      router.push('/login');
+      return;
+    }
     router.push(`/matches/request/${materialId}`);
   };
 
   const toggleAnswers = () => {
+    if (!isLoggedIn) {
+      // 로그인하지 않은 경우 로그인 페이지로
+      router.push('/login');
+      return;
+    }
+    
     if (!hasAccess) {
-      // 권한이 없으면 매칭 요청 페이지로 이동
+      // 권한이 없으면 매칭 요청 페이지로
       handleMatchRequest();
       return;
     }
@@ -106,10 +103,37 @@ export default function MaterialDetailPage() {
   if (error || !material) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
-        <div className="text-red-600 text-lg mb-4">{error || '족보를 찾을 수 없습니다.'}</div>
-        <Link href="/materials" className="text-blue-600 hover:underline">
-          족보 목록으로 돌아가기
-        </Link>
+        <div className="text-center p-8 bg-red-50 rounded-lg border border-red-200 max-w-md">
+          <div className="text-red-500 text-4xl mb-4">🚫</div>
+          <h2 className="text-xl font-semibold text-red-800 mb-2">
+            {!isLoggedIn ? '로그인이 필요합니다' : '오류가 발생했습니다'}
+          </h2>
+          <p className="text-red-700 mb-4">{error || '족보를 찾을 수 없습니다.'}</p>
+          
+          {!isLoggedIn ? (
+            <div className="space-y-3">
+              <Link 
+                href="/login"
+                className="block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+              >
+                로그인하러 가기
+              </Link>
+              <Link 
+                href="/materials" 
+                className="block text-blue-600 hover:underline text-sm"
+              >
+                목록으로 돌아가기
+              </Link>
+            </div>
+          ) : (
+            <Link 
+              href="/materials" 
+              className="text-blue-600 hover:underline"
+            >
+              목록으로 돌아가기
+            </Link>
+          )}
+        </div>
       </div>
     );
   }
@@ -126,12 +150,21 @@ export default function MaterialDetailPage() {
               ← 목록으로
             </Link>
             <div className="flex gap-2">
-              {!isOwner && (
+              {isLoggedIn ? (
+                !isOwner && (
+                  <button
+                    onClick={handleMatchRequest}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+                  >
+                    🤝 매칭 요청
+                  </button>
+                )
+              ) : (
                 <button
-                  onClick={handleMatchRequest}
+                  onClick={() => router.push('/login')}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
                 >
-                  🤝 매칭 요청
+                  로그인하기
                 </button>
               )}
             </div>
@@ -144,7 +177,7 @@ export default function MaterialDetailPage() {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
           <div className="mb-4">
             <h1 className="text-2xl font-bold text-gray-900 mb-2">{material.title}</h1>
-            <div className="text-gray-600">{material.displayTitle}</div>
+            <div className="text-gray-600">{material.title}</div>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -185,8 +218,21 @@ export default function MaterialDetailPage() {
           </div>
         </div>
 
-        {/* 접근 권한 안내 */}
-        {!hasAccess && (
+        {/* 접근 권한 안내 - 비로그인 사용자용 */}
+        {!isLoggedIn && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center">
+              <div className="text-blue-500 mr-3">ℹ️</div>
+              <div>
+                <p className="text-blue-800 font-medium">로그인하시면 더 많은 정보를 확인할 수 있습니다</p>
+                <p className="text-blue-600 text-sm">문제 내용과 정답은 로그인 후 매칭을 통해 확인 가능합니다.</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 접근 권한 안내 - 로그인했지만 권한 없는 사용자용 */}
+        {isLoggedIn && !hasAccess && (
           <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
             <div className="flex items-center">
               <div className="text-orange-500 mr-3">🔒</div>
@@ -206,15 +252,17 @@ export default function MaterialDetailPage() {
               <button
                 onClick={toggleAnswers}
                 className={`px-4 py-2 rounded-lg transition-colors ${
-                  hasAccess
+                  isLoggedIn && hasAccess
                     ? showAnswers
                       ? 'bg-red-100 text-red-700 hover:bg-red-200'
                       : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
                     : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                 }`}
               >
-                {hasAccess 
+                {isLoggedIn && hasAccess
                   ? (showAnswers ? '정답 숨기기' : '정답 보기')
+                  : !isLoggedIn
+                  ? '🔒 로그인 필요'
                   : '🔒 매칭 후 확인 가능'
                 }
               </button>
@@ -236,8 +284,8 @@ export default function MaterialDetailPage() {
                       {question.content}
                     </div>
 
-                    {/* 🔒 권한에 따른 정답/해설 표시 */}
-                    {hasAccess && showAnswers ? (
+                    {/* 권한에 따른 정답/해설 표시 */}
+                    {isLoggedIn && hasAccess && showAnswers ? (
                       <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                         <div className="mb-2">
                           <span className="text-sm font-medium text-green-800">정답:</span>
@@ -250,20 +298,25 @@ export default function MaterialDetailPage() {
                           </div>
                         )}
                       </div>
-                    ) : !hasAccess ? (
+                    ) : (
                       <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                         <div className="text-center text-gray-500">
                           <div className="text-2xl mb-2">🔒</div>
-                          <p className="font-medium">정답 및 해설은 매칭 완료 후 확인 가능합니다</p>
+                          <p className="font-medium">
+                            {!isLoggedIn 
+                              ? '정답 및 해설은 로그인 후 확인 가능합니다'
+                              : '정답 및 해설은 매칭 완료 후 확인 가능합니다'
+                            }
+                          </p>
                           <button
-                            onClick={handleMatchRequest}
+                            onClick={!isLoggedIn ? () => router.push('/login') : handleMatchRequest}
                             className="mt-2 text-blue-600 hover:text-blue-800 text-sm underline"
                           >
-                            매칭 요청하기
+                            {!isLoggedIn ? '로그인하기' : '매칭 요청하기'}
                           </button>
                         </div>
                       </div>
-                    ) : null}
+                    )}
                   </div>
                 ))}
               </div>
@@ -276,13 +329,24 @@ export default function MaterialDetailPage() {
         </div>
 
         {/* 하단 액션 */}
-        {!isOwner && (
+        {isLoggedIn ? (
+          !isOwner && (
+            <div className="mt-8 text-center">
+              <button
+                onClick={handleMatchRequest}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg text-lg font-medium transition-colors"
+              >
+                이 족보와 매칭 요청하기
+              </button>
+            </div>
+          )
+        ) : (
           <div className="mt-8 text-center">
             <button
-              onClick={handleMatchRequest}
+              onClick={() => router.push('/login')}
               className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg text-lg font-medium transition-colors"
             >
-              이 족보와 매칭 요청하기
+              로그인하고 매칭 요청하기
             </button>
           </div>
         )}

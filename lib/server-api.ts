@@ -1,17 +1,39 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081';
 
-export interface StudyMaterial {
+export interface StudyMaterialSummary {
+  id: number;
+  title: string;
+  subject: string;
+  examType: string;
+  year: number;
+  season: string;
+  semesterDisplay: string;
+  questionCount: number;
+  uploaderNickname: string;
+  uploaderId: number;
+  uploaderTrustScore: number;
+  createdAt: string;
+  tags?: string[];
+}
 
-    id: number;
-    title: string;
-    subject: string;
-    examType: string;
-    semesterDisplay: string;
-    questionCount: number;
-    uploaderNickname: string;
-    uploaderTrustScore: number;
-    createdAt: string;
-    tags?: string[];
+// 상세 학습자료 정보 (상세 페이지용)
+export interface StudyMaterial extends StudyMaterialSummary {
+  displayTitle: string;
+  questions: Question[];
+}
+export interface Question {
+  number: number;
+  content: string;
+  answer: string;
+  explanation: string;
+}
+export interface User {
+  Id: number;
+  nickname: string;
+  email: string;
+  role: string;
+  trustScore: number;
+  createdAt: string;
 }
 
 export async function getServerMaterials(): Promise<StudyMaterial[]> {
