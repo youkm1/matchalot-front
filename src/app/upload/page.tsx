@@ -61,29 +61,15 @@ export default function UploadPage() {
           ? examTypesResponse 
           : examTypesResponse.examTypes || [];
         
-        setSubjects(subjectsData.map((item: any) => {
-        if (typeof item === 'string') {
-          return {
-            id: item,
-            name: item === 'KOREAN_WOMEN_HISTORY' ? '한국여성의역사' :
-                  item === 'ALGORITHM' ? '알고리즘' :
-                  item === 'DIGITAL_LOGIC_CIRCUIT' ? '디지털논리회로' :
-                  item === 'STATISTICS_INTRODUCTION' ? '통계학입문' : item
-          };
-        }
-        return item;
-      }));
+        setSubjects(subjectsData.map((name:string) => ({
+          id:name,
+          name:name
+        })));
 
-      setExamTypes(examTypesData.map((item: any) => {
-        if (typeof item === 'string') {
-          return {
-            id: item,
-            name: item === 'MIDTERM' ? '중간고사' :
-                  item === 'FINAL' ? '기말고사' : item
-          };
-        }
-        return item;
-      }));
+        setExamTypes(examTypesData.map((name: string) => ({
+          id:name,
+          name:name
+        })));
         
       } catch (error) {
         console.error('데이터 로드 실패:', error);
@@ -91,15 +77,15 @@ export default function UploadPage() {
         
         // fallback 데이터
         setSubjects([
-        { id: 'KOREAN_WOMEN_HISTORY', name: '한국여성의역사' },
-        { id: 'ALGORITHM', name: '알고리즘' },
-        { id: 'DIGITAL_LOGIC_CIRCUIT', name: '디지털논리회로'},
-        { id: 'STATISTICS_INTRODUCTION', name: '통계학입문'}
-      ]);
-      setExamTypes([
-        { id: 'MIDTERM', name: '중간고사' },
-        { id: 'FINAL', name: '기말고사' }
-      ]);
+          { id: '한국여성의역사', name: '한국여성의역사' },
+          { id: '알고리즘', name: '알고리즘' },
+          { id: '디지털논리회로', name: '디지털논리회로'},
+          { id: '보고듣고만지는현대사상', name: '보고듣고만지는현대사상'}
+        ]);
+        setExamTypes([
+          { id: '중간고사', name: '중간고사' },
+          { id: '기말고사', name: '기말고사' }
+        ]);
       }
     };
     loadData();
