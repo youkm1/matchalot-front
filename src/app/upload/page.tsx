@@ -3,11 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import { studyMaterialAPI } from '../../../lib/api';
 
-interface Question {
+interface QuestionSolution {
   number: number;
-  content: string;
   answer: string;
-  description?: string;
+  explanation: string;
 }
 
 interface Subject {
@@ -21,7 +20,7 @@ interface ExamType {
 }
 
 export default function UploadPage() {
-  const [step, setStep] = useState(1); // 1: PDF 업로드, 2: 정보 입력, 3: 문제 입력
+  const [step, setStep] = useState(1); // 1: PDF 업로드, 2: 정보 입력, 3: 해설 입력
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   
@@ -34,9 +33,9 @@ export default function UploadPage() {
     title: ''
   });
   
-  // 문제 목록
-  const [questions, setQuestions] = useState<Question[]>([
-    { number: 1, content: '', answer: '', description: '' }
+  // 문제 해답 목록 (문제 번호 + 답 + 설명)
+  const [solutions, setSolutions] = useState<QuestionSolution[]>([
+    { number: 1, answer: '', explanation: '' }
   ]);
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -45,7 +44,6 @@ export default function UploadPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    // 과목과 시험 유형 목록 로드
     const loadData = async () => {
       try {
         const [subjectsResponse, examTypesResponse] = await Promise.all([
@@ -53,34 +51,28 @@ export default function UploadPage() {
           studyMaterialAPI.getExamTypes()
         ]);
         
-        // API 응답 형식에 맞게 파싱
-        const subjectsData = Array.isArray(subjectsResponse) 
-          ? subjectsResponse 
-          : subjectsResponse.subjects || [];
-        const examTypesData = Array.isArray(examTypesResponse) 
-          ? examTypesResponse 
-          : examTypesResponse.examTypes || [];
+        const subjectsData = subjectsResponse.subjects || [];
+        const examTypesData = examTypesResponse.examTypes || [];
         
-        setSubjects(subjectsData.map((name:string) => ({
-          id:name,
-          name:name
+        setSubjects(subjectsData.map((name: string) => ({
+          id: name,
+          name: name
         })));
 
         setExamTypes(examTypesData.map((name: string) => ({
-          id:name,
-          name:name
+          id: name,
+          name: name
         })));
         
       } catch (error) {
         console.error('데이터 로드 실패:', error);
         setError('기본 데이터 로드에 실패했습니다.');
         
-        // fallback 데이터
         setSubjects([
           { id: '한국여성의역사', name: '한국여성의역사' },
           { id: '알고리즘', name: '알고리즘' },
           { id: '디지털논리회로', name: '디지털논리회로'},
-          { id: '보고듣고만지는현대사상', name: '보고듣고만지는현대사상'}
+          { id: '통계학입문', name: '통계학입문'}
         ]);
         setExamTypes([
           { id: '중간고사', name: '중간고사' },
@@ -95,7 +87,7 @@ export default function UploadPage() {
   const handlePDFUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file && file.type === 'application/pdf') {
-      if (file.size > 10 * 1024 * 1024) { // 10MB 제한
+      if (file.size > 10 * 1024 * 1024) {
         setError('파일 크기는 10MB 이하여야 합니다.');
         return;
       }
@@ -110,43 +102,39 @@ export default function UploadPage() {
     }
   };
 
-  // 문제 추가
-  const addQuestion = () => {
-    if (questions.length >= 50) {
-      setError('최대 50개까지 문제를 추가할 수 있습니다.');
+  // 해답 추가
+  const addSolution = () => {
+    if (solutions.length >= 20) {
+      setError('최대 20개까지 문제 해답을 추가할 수 있습니다.');
       return;
     }
     
-    setQuestions([
-      ...questions,
-      { number: questions.length + 1, content: '', answer: '', description: '' }
+    const nextNumber = Math.max(...solutions.map(s => s.number)) + 1;
+    setSolutions([
+      ...solutions,
+      { number: nextNumber, answer: '', explanation: '' }
     ]);
   };
 
-  // 문제 삭제
-  const removeQuestion = (index: number) => {
-    if (questions.length === 1) {
-      setError('최소 1개의 문제는 있어야 합니다.');
+  // 해답 삭제
+  const removeSolution = (index: number) => {
+    if (solutions.length === 1) {
+      setError('최소 1개의 문제 해답은 있어야 합니다.');
       return;
     }
     
-    const newQuestions = questions.filter((_, i) => i !== index);
-    // 문제 번호 재정렬
-    const reorderedQuestions = newQuestions.map((q, i) => ({
-      ...q,
-      number: i + 1
-    }));
-    setQuestions(reorderedQuestions);
+    const newSolutions = solutions.filter((_, i) => i !== index);
+    setSolutions(newSolutions);
   };
 
-  // 문제 내용 업데이트
-  const updateQuestion = (index: number, field: keyof Question, value: string | number) => {
-    const newQuestions = [...questions];
-    newQuestions[index] = {
-      ...newQuestions[index],
+  // 해답 내용 업데이트
+  const updateSolution = (index: number, field: keyof QuestionSolution, value: string | number) => {
+    const newSolutions = [...solutions];
+    newSolutions[index] = {
+      ...newSolutions[index],
       [field]: field === 'number' ? Number(value) : value
     };
-    setQuestions(newQuestions);
+    setSolutions(newSolutions);
   };
 
   // 폼 제출
@@ -159,28 +147,30 @@ export default function UploadPage() {
       return;
     }
 
-    const invalidQuestions = questions.filter(q => !q.content.trim() || !q.answer.trim());
-    if (invalidQuestions.length > 0) {
-      setError('모든 문제의 내용과 답안을 입력해주세요.');
+    const validSolutions = solutions.filter(s => s.answer.trim() && s.explanation.trim());
+    if (validSolutions.length === 0) {
+      setError('최소 1개의 문제 해답을 입력해주세요.');
       return;
     }
 
     setIsSubmitting(true);
     
     try {
+      // 🎯 문제 번호 + 답 + 설명 형식으로 전송
+      const questionsForBackend = validSolutions.map(sol => ({
+        number: sol.number,
+        content: `문제 ${sol.number}번 (PDF 참조)`, // PDF 참조 표시
+        answer: sol.answer,
+        explanation: sol.explanation
+      }));
+
       const uploadData = {
         subject: formData.subject,
-        examType: formData.examType === 'MIDTERM' ? '중간고사' : 
-            formData.examType === 'FINAL' ? '기말고사' : formData.examType,
+        examType: formData.examType,
         year: formData.year,
         season: formData.season,
         title: formData.title.trim(),
-        questions: questions.map(q => ({
-          number: q.number,
-          content: q.content.trim(),
-          answer: q.answer.trim(),
-          explanation: q.description?.trim() || undefined
-        }))
+        questions: questionsForBackend
       };
 
       console.log('업로드 데이터:', uploadData);
@@ -188,8 +178,6 @@ export default function UploadPage() {
       console.log('업로드 성공:', result);
       
       alert('학습자료가 성공적으로 업로드되었습니다!');
-      
-      // 성공 후 materials 페이지로 이동
       window.location.href = '/materials';
       
     } catch (error) {
@@ -200,7 +188,6 @@ export default function UploadPage() {
     }
   };
 
-  // 뒒로 가기
   const goBack = () => {
     if (step > 1) {
       setStep(step - 1);
@@ -217,7 +204,7 @@ export default function UploadPage() {
             학습자료 업로드
           </h1>
           <p className="text-gray-600">
-            족보를 업로드하고 다른 학우들과 공유해보세요!
+            족보 PDF와 함께 나만의 해설을 공유해보세요! 🎯
           </p>
         </div>
 
@@ -257,7 +244,7 @@ export default function UploadPage() {
           <div className="flex justify-between text-sm text-gray-600 max-w-md mx-auto">
             <span>PDF 업로드</span>
             <span>기본 정보</span>
-            <span>문제 입력</span>
+            <span>문제 해답</span>
           </div>
         </div>
 
@@ -265,7 +252,7 @@ export default function UploadPage() {
         {step === 1 && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-              📄 PDF 파일 업로드
+              📄 족보 PDF 업로드
             </h2>
             
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center hover:border-blue-400 transition-colors">
@@ -289,11 +276,12 @@ export default function UploadPage() {
             </div>
 
             <div className="mt-6 bg-blue-50 rounded-lg p-4">
-              <h4 className="font-semibold text-blue-800 mb-2">📝 업로드 안내</h4>
+              <h4 className="font-semibold text-blue-800 mb-2">📝 새로운 업로드 방식</h4>
               <ul className="text-sm text-blue-700 space-y-1">
-                <li>• PDF 파일을 업로드한 후 문제를 직접 입력해주세요</li>
-                <li>• 명확한 문제와 정답을 작성해주세요</li>
-                <li>• 품질 좋은 자료일수록 신뢰도가 더 올라갑니다</li>
+                <li>• PDF에는 족보 원본을 업로드하세요</li>
+                <li>• 다음 단계에서 <strong>문제 번호 + 답 + 설명</strong>을 입력해주세요</li>
+                <li>• 모든 문제가 아닌 중요하거나 어려운 문제만 해도 OK!</li>
+                <li>• 다른 학우들이 이해하기 쉽게 설명해주시면 됩니다</li>
               </ul>
             </div>
           </div>
@@ -305,7 +293,7 @@ export default function UploadPage() {
             <div className="flex items-start space-x-8">
               {/* PDF 미리보기 */}
               <div className="flex-1">
-                <h3 className="text-lg font-semibold mb-4">📄 업로드된 파일</h3>
+                <h3 className="text-lg font-semibold mb-4">📄 업로드된 족보</h3>
                 {pdfUrl && (
                   <>
                     <div className="border rounded-lg p-4 bg-gray-50 mb-4">
@@ -384,7 +372,7 @@ export default function UploadPage() {
                         onChange={(e) => setFormData({...formData, year: parseInt(e.target.value)})}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
-                        {[2025, 2024, 2023, 2022, 2021, 2020].map(year => (
+                        {[2024, 2023, 2022, 2021, 2020].map(year => (
                           <option key={year} value={year}>{year}년</option>
                         ))}
                       </select>
@@ -417,7 +405,7 @@ export default function UploadPage() {
                       type="text"
                       value={formData.title}
                       onChange={(e) => setFormData({...formData, title: e.target.value})}
-                      placeholder="예: 2024년 1학기 자료구조 중간고사"
+                      placeholder="예: 2024년 1학기 자료구조 중간고사 해답"
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       required
                     />
@@ -436,7 +424,7 @@ export default function UploadPage() {
                     disabled={!formData.subject || !formData.examType || !formData.title || !formData.season}
                     className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-colors"
                   >
-                    다음: 문제 입력
+                    다음: 문제 해답 작성
                   </button>
                 </div>
               </div>
@@ -444,24 +432,45 @@ export default function UploadPage() {
           </div>
         )}
 
-        {/* Step 3: 문제 입력 */}
+        {/* Step 3: 문제 해답 입력 */}
         {step === 3 && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-semibold">📝 문제 입력</h3>
+              <h3 className="text-xl font-semibold">📝 문제 해답 작성</h3>
               <div className="text-sm text-gray-600">
-                {questions.length}/50 문제
+                {solutions.length}/20 문제
               </div>
             </div>
 
+            <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <h4 className="font-semibold text-yellow-800 mb-2">💡 해답 작성 팁</h4>
+              <ul className="text-sm text-yellow-700 space-y-1">
+                <li>• <strong>문제 번호</strong>: PDF의 문제 번호를 정확히 입력하세요</li>
+                <li>• <strong>답</strong>: 정답을 명확하게 작성해주세요</li>
+                <li>• <strong>설명</strong>: 왜 이 답이 나오는지 단계별로 설명해주세요</li>
+                <li>• 모든 문제가 아닌 <strong>중요한 문제</strong>만 선별해서 작성해도 됩니다</li>
+              </ul>
+            </div>
+
             <div className="space-y-6">
-              {questions.map((question, index) => (
+              {solutions.map((solution, index) => (
                 <div key={index} className="border border-gray-200 rounded-lg p-4">
                   <div className="flex justify-between items-center mb-3">
-                    <h4 className="font-medium">문제 {question.number}</h4>
-                    {questions.length > 1 && (
+                    <div className="flex items-center space-x-3">
+                      <h4 className="font-medium">문제 번호</h4>
+                      <input
+                        type="number"
+                        min="1"
+                        max="100"
+                        value={solution.number}
+                        onChange={(e) => updateSolution(index, 'number', e.target.value)}
+                        className="w-20 px-2 py-1 border border-gray-300 rounded text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-600">번</span>
+                    </div>
+                    {solutions.length > 1 && (
                       <button
-                        onClick={() => removeQuestion(index)}
+                        onClick={() => removeSolution(index)}
                         className="text-red-600 hover:text-red-800 text-sm"
                       >
                         삭제
@@ -472,25 +481,11 @@ export default function UploadPage() {
                   <div className="space-y-3">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        문제 내용 *
-                      </label>
-                      <textarea
-                        value={question.content}
-                        onChange={(e) => updateQuestion(index, 'content', e.target.value)}
-                        placeholder="문제 내용을 입력하세요"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        rows={3}
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
                         정답 *
                       </label>
                       <textarea
-                        value={question.answer}
-                        onChange={(e) => updateQuestion(index, 'answer', e.target.value)}
+                        value={solution.answer}
+                        onChange={(e) => updateSolution(index, 'answer', e.target.value)}
                         placeholder="정답을 입력하세요"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         rows={2}
@@ -500,14 +495,15 @@ export default function UploadPage() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        해설 (선택)
+                        해설 *
                       </label>
                       <textarea
-                        value={question.description || ''}
-                        onChange={(e) => updateQuestion(index, 'description', e.target.value)}
-                        placeholder="추가 설명이나 해설을 입력하세요"
+                        value={solution.explanation}
+                        onChange={(e) => updateSolution(index, 'explanation', e.target.value)}
+                        placeholder="이 답이 나오는 과정을 단계별로 설명해주세요..."
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        rows={2}
+                        rows={4}
+                        required
                       />
                     </div>
                   </div>
@@ -517,8 +513,8 @@ export default function UploadPage() {
 
             <div className="mt-6 flex justify-between items-center">
               <button
-                onClick={addQuestion}
-                disabled={questions.length >= 50}
+                onClick={addSolution}
+                disabled={solutions.length >= 20}
                 className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-colors"
               >
                 + 문제 추가
