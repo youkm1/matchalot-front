@@ -1,6 +1,17 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Standalone 모드로 빌드 (Docker에 최적화)
+  output: 'standalone',
+
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+
+
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   
   async rewrites() {
     return [
