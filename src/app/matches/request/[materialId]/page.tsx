@@ -124,7 +124,7 @@ export default function MatchRequestPage() {
       console.log('materialId:', materialId); // 디버깅용
       console.log('requestData:', requestData); // 디버깅용
       
-      // ✅ 수정된 API 함수 사용
+    
       await matchAPI.request(materialId, requestData);
       
       setSuccess('매칭 요청이 성공적으로 전송되었습니다!');

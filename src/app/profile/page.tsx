@@ -503,15 +503,15 @@ export default function ProfilePage() {
         </div>
 
         {/* 탈퇴 */}
-        <div className="bg-white rounded-lg shadow-sm border border-red-200 p-6">
-          <div className="p-4 bg-red-50 rounded-lg border border-red-200">
-            <h4 className="font-semibold text-red-800 mb-2">회원 탈퇴</h4>
-            <p className="text-red-700 text-sm mb-4">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="p-4  rounded-lg border border-gray-200">
+            <h4 className="font-semibold text-gray-800 mb-2">회원 탈퇴</h4>
+            <p className="text-gray-700 text-sm mb-4">
               탈퇴 시 모든 데이터가 삭제되며, 복구할 수 없습니다!
             </p>
             <button
               onClick={() => setIsWithdrawalModalOpen(true)}
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              className="bg-red-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
             >
               회원 탈퇴
             </button>
