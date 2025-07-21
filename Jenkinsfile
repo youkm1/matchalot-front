@@ -250,7 +250,7 @@ pipeline {
                                    },
                                    {
                                      "name": "커밋 작성자",
-                                     "value": "${commitAuthor}",
+                                     "value": "' + commitAuthor + '",
                                      "inline": true
                                    },
                                    {
