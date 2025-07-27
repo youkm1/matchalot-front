@@ -8,11 +8,12 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
 
-
   typescript: {
     ignoreBuildErrors: true,
   },
-  
+  env: {
+    API_BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'https://matchalot.duckdns.org',
+  },
   async rewrites() {
     return [
       {
