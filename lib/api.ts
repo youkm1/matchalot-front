@@ -183,7 +183,15 @@ export const apiClient = new ApiClient();
 
 // 🔒 CSRF 토큰을 사용하지 않는 auth API들
 export const authAPI = {
-  getCurrentUser: () => apiClient.get('/api/v1/auth/me'),
+  getCurrentUser: () => {
+    return fetch('https://matchalot.duckdns.org/api/v1/auth/me',{
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Accept': 'application/json',
+      }
+    }).then(res => res.json());
+  },
   
   // 로그아웃은 별도 처리 (CSRF 토큰 포함)
   logout: async () => {
@@ -208,11 +216,10 @@ export const authAPI = {
     }
   },
   deleteAccount: async () => {
-  const response = await fetch('/api/v1/auth/delete', {
+  const response = await fetch('https://matchalot.duckdns.org/api/v1/auth/me', {  // ← 절대 경로로 수정
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',
-      // CSRF 토큰이 필요하면 추가
     },
     credentials: 'include'
   });
@@ -222,7 +229,8 @@ export const authAPI = {
   }
   
   return response.json();
-  },
+},
+  
   handleCallback: () => apiClient.get('/api/v1/auth/callback'),
   getCsrfToken: () => apiClient.get('/api/v1/auth/csrf-token'),
 };
