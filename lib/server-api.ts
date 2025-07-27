@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://matchalot.duckdns.org';
+const API_URL = 'https://matchalot.duckdns.org';
 
 export interface StudyMaterialSummary {
   id: number;
