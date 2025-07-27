@@ -10,7 +10,7 @@ export async function getCurrentUser() {
     
     try {
         // 서버에서 사용자 정보 가져오기
-        const response = await fetch(`http://app:8080/api/v1/auth/me`, {
+        const response = await fetch(`https://matchalot.duckdns.org/api/v1/auth/me`, {
             headers: { 
                 'Cookie': `auth-token=${authToken.value}`,
                 'Accept': 'application/json',
