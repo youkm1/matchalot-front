@@ -39,7 +39,7 @@ export default function LoginPage() {
     setError(''); // 이전 에러 메시지 지우기
 
     const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://matchalot.duckdns.org';
-    window.location.href = `${API_BASE_URL}/oauth2/authorization/google`;
+    window.location.href = `https://matchalot.duckdns.org/oauth2/authorization/google`;
   };
 
   return (
