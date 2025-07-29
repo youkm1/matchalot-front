@@ -1,5 +1,3 @@
-const API_URL = 'https://matchalot.duckdns.org';
-
 export interface StudyMaterialSummary {
   id: number;
   title: string;
@@ -38,7 +36,7 @@ export interface User {
 
 export async function getServerMaterials(): Promise<StudyMaterial[]> {
     try {
-        const response = await fetch(`${API_URL}/api/v1/study-materials`, {
+        const response = await fetch(`/api/v1/study-materials`, {
         headers: {
         'Accept': 'application/json',
         },
@@ -62,7 +60,7 @@ export async function getServerMaterials(): Promise<StudyMaterial[]> {
 
 export async function getServerSubjects(): Promise<Array<{id: string, name: string}>> {
   try {
-    const response = await fetch(`${API_URL}/api/v1/study-materials/subjects`, {
+    const response = await fetch(`/api/v1/study-materials/subjects`, {
       headers: { 'Accept': 'application/json' },
       cache: 'force-cache', // 과목 목록은 캐시 가능
     });
@@ -88,7 +86,7 @@ export async function getServerSubjects(): Promise<Array<{id: string, name: stri
 
 export async function getServerExamTypes(): Promise<Array<{id: string, name: string}>> {
   try {
-    const response = await fetch(`${API_URL}/api/v1/study-materials/exam-types`, {
+    const response = await fetch(`/api/v1/study-materials/exam-types`, {
       headers: { 'Accept': 'application/json' },
       cache: 'force-cache',
     });

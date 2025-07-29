@@ -1,20 +1,14 @@
-// lib/api.ts - CSRF 토큰 지원 버전 (문법 오류 수정)
 
-const API_BASE_URL = 'https://matchalot.duckdns.org';
-
-// 🔧 확장된 옵션 타입 정의 (클래스 밖으로 이동)
 interface ExtendedRequestInit extends RequestInit {
   retryWithNewCsrf?: boolean;
 }
 
 class ApiClient {
-  private baseURL: string;
+  
   private csrfToken: string | null = null;
   private csrfTokenPromise: Promise<string> | null = null;
 
-  constructor() {
-    this.baseURL = API_BASE_URL;
-  }
+  
 
   // CSRF 토큰 가져오기 (캐싱 지원)
   private async getCsrfToken(): Promise<string> {
@@ -42,7 +36,7 @@ class ApiClient {
   private async fetchCsrfToken(): Promise<string> {
     try {
       console.log('🔒 CSRF 토큰 요청 중...');
-      const response = await fetch(`${this.baseURL}/api/v1/auth/csrf-token`, {
+      const response = await fetch(`/api/v1/auth/csrf-token`, {
         method: 'GET',
         credentials: 'include',
         headers: { 'Accept': 'application/json' }
@@ -69,7 +63,7 @@ class ApiClient {
   }
 
   async request(endpoint: string, options: ExtendedRequestInit = {}): Promise<any> {
-    const url = `${this.baseURL}${endpoint}`;
+    const url = endpoint.startsWith('http') ? endpoint : endpoint;
     const method = (options.method || 'GET').toUpperCase();
     
     const headers: Record<string, string> = {
@@ -104,6 +98,7 @@ class ApiClient {
       credentials: 'include',
       ...restOptions,
     };
+    
 
     try {
       console.log(`📡 API 요청: ${method} ${endpoint}`);
@@ -197,7 +192,7 @@ export const authAPI = {
   logout: async () => {
     try {
       console.log('🚪 로그아웃 요청...');
-      const response = await fetch(`${API_BASE_URL}/api/v1/auth/logout`, {
+      const response = await fetch(`/api/v1/auth/logout`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -216,7 +211,8 @@ export const authAPI = {
     }
   },
   deleteAccount: async () => {
-  const response = await fetch('https://matchalot.duckdns.org/api/v1/auth/me', {  // ← 절대 경로로 수정
+  const response = await fetch('/api/v1/auth/me', {
+
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',
@@ -349,10 +345,9 @@ export const adminAPI = {
   
   // 사용자 강제 탈퇴 (DELETE - CSRF 필요) - number도 받도록 수정
   forceDeleteUser: (userId: string | number, reason: string) => {
-    console.log('👑 사용자 강제 탈퇴:', userId, reason);
     return apiClient.delete(`/api/v1/admin/users/${userId}`, {
-      body: JSON.stringify({ reason }),
-      headers: { 'Content-Type': 'application/json' }
+      method: 'DELETE',
+      body: JSON.stringify({ reason })
     });
   },
   

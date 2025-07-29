@@ -37,9 +37,9 @@ export default function LoginPage() {
   const handleGoogleLogin = () => {
     setIsLoading(true);
     setError(''); // 이전 에러 메시지 지우기
+    //rewrites로프록시됨
+    window.location.href = `oauth2/authorization/google`;
 
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://matchalot.duckdns.org';
-    window.location.href = `https://matchalot.duckdns.org/oauth2/authorization/google`;
   };
 
   return (
@@ -114,21 +114,7 @@ export default function LoginPage() {
           </div>
         </div>
         
-        <div className="mt-8 text-center">
-          <p className="text-xs text-gray-400">
-            로그인하면 이용약관과 개인정보처리방침에 동의하는 것으로 간주됩니다.
-          </p>
-        </div>
-
-        {/* 개발용 정보 (프로덕션에서 제거) */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mt-6 p-3 bg-gray-100 rounded text-xs text-gray-600">
-            <strong>개발 정보:</strong>
-            <br />• OAuth2 URL: /oauth2/authorization/google
-            <br />• 성공: user@sookmyung.ac.kr → /auth/callback
-            <br />• 실패: user@gmail.com → /login?error=domain_not_allowed
-          </div>
-        )}
+    
       </div>
     </div>
   );

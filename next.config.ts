@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // Standalone 모드로 빌드 (Docker에 최적화)
-  output: 'standalone',
+  //output: 'standalone',
 
   eslint: {
     ignoreDuringBuilds: true,
@@ -18,16 +18,16 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: 'http://localhost:8080/api/:path*',
+        destination: 'https://matchalot.duckdns.org/api/:path*',      
       },
-      // {
-    //    source: '/oauth2/:path*',
-    //    destination: 'http://localhost:8080/oauth2/:path*',
-    //  },
-    //  {
-    //    source: '/login/oauth2/:path*',
-    //    destination: 'http://localhost:8080/login/oauth2/:path*',
-    //  }, 
+      {
+        source: '/oauth2/:path*',
+        destination: 'https://matchalot.duckdns.org/oauth2/:path*',
+      },
+      {
+        source: '/login/oauth2/:path*',
+        destination: 'https://matchalot.duckdns.org/login/oauth2/:path*',
+      }, 
     ];
   },
 };
