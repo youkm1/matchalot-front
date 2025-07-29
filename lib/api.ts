@@ -179,7 +179,7 @@ export const apiClient = new ApiClient();
 // 🔒 CSRF 토큰을 사용하지 않는 auth API들
 export const authAPI = {
   getCurrentUser: () => {
-    return fetch('https://matchalot.duckdns.org/api/v1/auth/me',{
+    return fetch('/api/v1/auth/me',{
       method: 'GET',
       credentials: 'include',
       headers: {
