@@ -20,14 +20,14 @@ const nextConfig: NextConfig = {
         source: '/api/:path*',
         destination: 'https://matchalot.duckdns.org/api/:path*',      
       },
-      {
-        source: '/oauth2/:path*',
-        destination: 'https://matchalot.duckdns.org/oauth2/:path*',
-      },
-      {
-        source: '/login/oauth2/:path*',
-        destination: 'https://matchalot.duckdns.org/login/oauth2/:path*',
-      }, 
+     // {
+     //   source: '/oauth2/:path*',
+     //   destination: 'https://matchalot.duckdns.org/oauth2/:path*',
+     // },
+     // {
+     //   source: '/login/oauth2/:path*',
+     //  destination: 'https://matchalot.duckdns.org/login/oauth2/:path*',
+     //  }, 
     ];
   },
 };
