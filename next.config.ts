@@ -12,13 +12,13 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   env: {
-    API_BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'https://matchalot.duckdns.org',
+    API_BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'https://api.match-a-lot.store',
   },
   async rewrites() {
     return [
       {
         source: '/api/:path*',
-        destination: 'https://matchalot.duckdns.org/api/:path*',      
+        destination: 'https://api.match-a-lot.store/api/:path*',      
       },
      // {
      //   source: '/oauth2/:path*',

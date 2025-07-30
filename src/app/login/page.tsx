@@ -38,7 +38,7 @@ export default function LoginPage() {
     setIsLoading(true);
     setError(''); // 이전 에러 메시지 지우기
     //rewrites로프록시됨
-    window.location.href = `https://matchalot.duckdns.org/oauth2/authorization/google`;
+    window.location.href = `https://api.match-a-lot.store/oauth2/authorization/google`;
 
   };
 

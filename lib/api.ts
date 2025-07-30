@@ -1,3 +1,4 @@
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.match-a-lot.store';
 
 interface ExtendedRequestInit extends RequestInit {
   retryWithNewCsrf?: boolean;
@@ -36,7 +37,7 @@ class ApiClient {
   private async fetchCsrfToken(): Promise<string> {
     try {
       console.log('🔒 CSRF 토큰 요청 중...');
-      const response = await fetch(`/api/v1/auth/csrf-token`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/auth/csrf-token`, {
         method: 'GET',
         credentials: 'include',
         headers: { 'Accept': 'application/json' }
