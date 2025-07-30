@@ -12,9 +12,9 @@ export async function getCurrentUser() {
         // 서버에서 사용자 정보 가져오기
         const response = await fetch(`https://api.match-a-lot.store/api/v1/auth/me`, {
             headers: { 
-                'Cookie': `auth-token=${authToken.value}`,
                 'Accept': 'application/json',
             },
+            credentials:'include',
         });
         
         if (!response.ok) {
