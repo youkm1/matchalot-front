@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { studyMaterialAPI } from '../../../lib/api';
+import { useRouter } from 'next/navigation';
+import { studyMaterialAPI, authAPI } from '../../../lib/api';
 
 interface QuestionSolution {
   number: number;
@@ -19,8 +20,24 @@ interface ExamType {
   name: string;
 }
 
+interface User {
+  Id: number;
+  nickname: string;
+  email: string;
+  role: string;
+  trustScore: number;
+  createdAt: string;
+}
+
 export default function UploadPage() {
-  const [step, setStep] = useState(1); // 1: PDF 업로드, 2: 정보 입력, 3: 해설 입력
+  const router = useRouter();
+  
+  // ✅ 인증 상태 관리 추가
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [authError, setAuthError] = useState('');
+
+  const [step, setStep] = useState(1); 
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   
@@ -43,45 +60,134 @@ export default function UploadPage() {
   const [examTypes, setExamTypes] = useState<ExamType[]>([]);
   const [error, setError] = useState('');
 
+  // ✅ 인증 체크 및 데이터 로드
   useEffect(() => {
-    const loadData = async () => {
+    const checkAuthAndLoadData = async () => {
       try {
-        const [subjectsResponse, examTypesResponse] = await Promise.all([
-          studyMaterialAPI.getSubjects(),
-          studyMaterialAPI.getExamTypes()
-        ]);
+        setIsAuthLoading(true);
         
-        const subjectsData = subjectsResponse.subjects || [];
-        const examTypesData = examTypesResponse.examTypes || [];
+        // 🔒 인증 상태 확인
+        const user = await authAPI.getCurrentUser();
+        console.log('✅ 사용자 인증 확인:', user);
+        setCurrentUser(user);
         
-        setSubjects(subjectsData.map((name: string) => ({
-          id: name,
-          name: name
-        })));
-
-        setExamTypes(examTypesData.map((name: string) => ({
-          id: name,
-          name: name
-        })));
+        // 권한 체크 (신뢰도가 너무 낮으면 업로드 제한)
+        if (user.trustScore < -5) {
+          setAuthError('신뢰도가 너무 낮아 자료를 업로드할 수 없습니다. (-5점 미만)');
+          return;
+        }
+        
+        // 인증 성공 후 기본 데이터 로드
+        await loadBasicData();
         
       } catch (error) {
-        console.error('데이터 로드 실패:', error);
-        setError('기본 데이터 로드에 실패했습니다.');
-        
-        setSubjects([
-          { id: '한국여성의역사', name: '한국여성의역사' },
-          { id: '알고리즘', name: '알고리즘' },
-          { id: '디지털논리회로', name: '디지털논리회로'},
-          { id: '통계학입문', name: '통계학입문'}
-        ]);
-        setExamTypes([
-          { id: '중간고사', name: '중간고사' },
-          { id: '기말고사', name: '기말고사' }
-        ]);
+        console.error('❌ 인증 실패:', error);
+        alert('로그인이 필요합니다. 로그인 페이지로 이동합니다.');
+        router.push('/login');
+      } finally {
+        setIsAuthLoading(false);
       }
     };
-    loadData();
-  }, []);
+
+    checkAuthAndLoadData();
+  }, [router]);
+
+  const loadBasicData = async () => {
+    try {
+      const [subjectsResponse, examTypesResponse] = await Promise.all([
+        studyMaterialAPI.getSubjects(),
+        studyMaterialAPI.getExamTypes()
+      ]);
+      
+      const subjectsData = subjectsResponse.subjects || [];
+      const examTypesData = examTypesResponse.examTypes || [];
+      
+      setSubjects(subjectsData.map((name: string) => ({
+        id: name,
+        name: name
+      })));
+
+      setExamTypes(examTypesData.map((name: string) => ({
+        id: name,
+        name: name
+      })));
+      
+    } catch (error) {
+      console.error('데이터 로드 실패:', error);
+      setError('기본 데이터 로드에 실패했습니다.');
+      
+      // 폴백 데이터
+      setSubjects([
+        { id: '한국여성의역사', name: '한국여성의역사' },
+        { id: '알고리즘', name: '알고리즘' },
+        { id: '디지털논리회로', name: '디지털논리회로'},
+        { id: '통계학입문', name: '통계학입문'}
+      ]);
+      setExamTypes([
+        { id: '중간고사', name: '중간고사' },
+        { id: '기말고사', name: '기말고사' }
+      ]);
+    }
+  };
+
+  // ✅ 인증 로딩 중이면 로딩 화면 표시
+  if (isAuthLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">인증 확인 중...</h2>
+          <p className="text-gray-600">로그인 상태를 확인하고 있습니다.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ✅ 인증 에러가 있으면 에러 화면 표시
+  if (authError) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center p-8 bg-red-50 rounded-lg border border-red-200 max-w-md">
+          <div className="text-red-500 text-4xl mb-4">🚫</div>
+          <h2 className="text-xl font-semibold text-red-800 mb-2">업로드 권한이 부족합니다</h2>
+          <p className="text-red-700 mb-4">{authError}</p>
+          <div className="space-y-3">
+            <button
+              onClick={() => router.push('/materials')}
+              className="block w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+            >
+              자료 둘러보기
+            </button>
+            <button
+              onClick={() => router.push('/profile')}
+              className="block w-full text-blue-600 hover:underline text-sm"
+            >
+              마이페이지에서 내 정보 확인
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ✅ 사용자 정보가 없으면 에러
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center p-8 bg-red-50 rounded-lg border border-red-200 max-w-md">
+          <div className="text-red-500 text-4xl mb-4">😵</div>
+          <h2 className="text-xl font-semibold text-red-800 mb-2">사용자 정보를 찾을 수 없습니다</h2>
+          <p className="text-red-700 mb-4">다시 로그인해주세요.</p>
+          <button
+            onClick={() => router.push('/login')}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+          >
+            로그인하러 가기
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // PDF 파일 업로드 처리
   const handlePDFUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -178,10 +284,23 @@ export default function UploadPage() {
       console.log('업로드 성공:', result);
       
       alert('학습자료가 성공적으로 업로드되었습니다!');
-      window.location.href = '/materials';
+      router.push('/materials');
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('업로드 실패:', error);
+      
+      // ✅ 인증 관련 에러 처리 추가
+      if (error?.status === 401 || error?.message?.includes('unauthorized')) {
+        alert('로그인이 만료되었습니다. 다시 로그인해주세요.');
+        router.push('/login');
+        return;
+      }
+      
+      if (error?.status === 403) {
+        alert('업로드 권한이 없습니다. 신뢰도를 확인해주세요.');
+        return;
+      }
+      
       setError('업로드에 실패했습니다. 다시 시도해주세요.');
     } finally {
       setIsSubmitting(false);
@@ -195,17 +314,75 @@ export default function UploadPage() {
     }
   };
 
+  const getDisplayName = (nickname: string) => {
+    if (!nickname) return '송이';
+    return nickname.charAt(0) + '송이';
+  };
+
+  const getRoleDisplayName = (role: string) => {
+    switch (role) {
+      case 'ADMIN': return '관리자';
+      case 'MEMBER': return '정회원';
+      case 'PENDING': return '준회원';
+      default: return role;
+    }
+  };
+
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case 'ADMIN': return 'bg-purple-100 text-purple-800';
+      case 'MEMBER': return 'bg-green-100 text-green-800';
+      case 'PENDING': return 'bg-yellow-100 text-yellow-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
-        {/* 헤더 */}
+        {/* ✅ 헤더에 사용자 정보 추가 */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            학습자료 업로드
-          </h1>
-          <p className="text-gray-600">
-            족보 PDF와 함께 나만의 해설을 공유해보세요! 🎯
-          </p>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                학습자료 업로드
+              </h1>
+              <p className="text-gray-600">
+                족보 PDF와 함께 나만의 해설을 공유해보세요! 🎯
+              </p>
+            </div>
+            
+            {/* 사용자 정보 표시 */}
+            <div className="text-right">
+              <div className="text-sm text-gray-500 mb-1">업로더</div>
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-gray-700">
+                  {getDisplayName(currentUser.nickname)}
+                </span>
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleColor(currentUser.role)}`}>
+                  {getRoleDisplayName(currentUser.role)}
+                </span>
+                <span className="text-xs text-gray-500">
+                  신뢰도 {currentUser.trustScore > 0 ? '+' : ''}{currentUser.trustScore}
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          {/* ✅ 준회원 안내 메시지 */}
+          {currentUser.role === 'PENDING' && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+              <div className="flex items-start">
+                <span className="text-yellow-500 text-xl mr-3">💡</span>
+                <div>
+                  <h4 className="text-yellow-800 font-semibold">준회원 안내</h4>
+                  <p className="text-yellow-700 text-sm mt-1">
+                    첫 번째 자료가 승인되면 정회원으로 승격되고 신뢰도 +5점을 받게 됩니다!
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* 에러 메시지 */}

@@ -114,8 +114,6 @@ export default function MatchRequestPage() {
     try {
       setIsSubmitting(true);
       setError('');
-
-      // 백엔드 API: POST /api/v1/match/request/{materialId}
       const requestData = {
         requesterMaterialId: parseInt(selectedMaterialId),
         receiverId: targetMaterial.uploaderId
