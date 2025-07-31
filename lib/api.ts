@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.match-a-lot.store';
+const API_BASE_URL = 'https://api.match-a-lot.store';
 
 interface ExtendedRequestInit extends RequestInit {
   retryWithNewCsrf?: boolean;
@@ -180,7 +180,7 @@ export const apiClient = new ApiClient();
 // 🔒 CSRF 토큰을 사용하지 않는 auth API들
 export const authAPI = {
   getCurrentUser: () => {
-    return fetch('/api/v1/auth/me',{
+    return fetch(`${API_BASE_URL}/api/v1/auth/me`,{
       method: 'GET',
       credentials: 'include',
       headers: {
@@ -198,7 +198,7 @@ export const authAPI = {
   logout: async () => {
     try {
       console.log('🚪 로그아웃 요청...');
-      const response = await fetch(`/api/v1/auth/logout`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/auth/logout`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -217,7 +217,7 @@ export const authAPI = {
     }
   },
   deleteAccount: async () => {
-  const response = await fetch('/api/v1/auth/me', {
+  const response = await fetch(`${API_BASE_URL}/api/v1/auth/me`, {
 
     method: 'DELETE',
     headers: {
@@ -233,8 +233,35 @@ export const authAPI = {
   return response.json();
 },
   
-  handleCallback: () => apiClient.get('/api/v1/auth/callback'),
-  getCsrfToken: () => apiClient.get('/api/v1/auth/csrf-token'),
+  handleCallback: () => {
+    return fetch(`${API_BASE_URL}/api/v1/auth/callback`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Accept': 'application/json',
+      }
+    }).then(res => {
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+      return res.json();
+    });
+  },
+
+  getCsrfToken: () => {
+    return fetch(`${API_BASE_URL}/api/v1/auth/csrf-token`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Accept': 'application/json',
+      }
+    }).then(res => {
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+      return res.json();
+    });
+  },
 };
 
 // 🔒 CSRF 토큰이 자동으로 포함되는 API들

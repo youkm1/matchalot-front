@@ -4,6 +4,8 @@ import { Suspense } from 'react';
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
+const API_BASE_URL =  'https://api.match-a-lot.store';
+
 interface UserInfo {
   email: string;
   nickname: string;
@@ -30,7 +32,6 @@ function AuthCallbackContent() {
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // 여기에 기존의 모든 useEffect와 함수들을 그대로 복사
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
@@ -50,7 +51,7 @@ function AuthCallbackContent() {
           setMessage(isNewUser === 'true' ? '회원가입이 완료되었습니다!' : '로그인이 완료되었습니다!');
           
           try {
-            const userResponse = await fetch('/api/v1/auth/me', {
+            const userResponse = await fetch(`${API_BASE_URL}/api/v1/auth/me`, {
               method: 'GET',
               credentials: 'include',
               headers: {
@@ -107,7 +108,7 @@ function AuthCallbackContent() {
 
     const checkAuthStatus = async () => {
       try {
-        const statusResponse = await fetch('/api/v1/auth/callback', {
+        const statusResponse = await fetch(`${API_BASE_URL}/api/v1/auth/callback`, {
           method: 'GET',
           credentials: 'include',
           headers: {
@@ -169,7 +170,8 @@ function AuthCallbackContent() {
             'Accept': 'application/json',
             ...(token && { 'Authorization': `Bearer ${token}` })
           };
-          const currentUserResponse = await fetch('/api/v1/auth/me', {
+          
+          const currentUserResponse = await fetch(`${API_BASE_URL}/api/v1/auth/me`, {
             method: 'GET',
             credentials: 'include',
             headers
@@ -190,7 +192,7 @@ function AuthCallbackContent() {
           console.log('Not logged in yet, proceeding with login...');
         }
 
-        const loginResponse = await fetch('/api/v1/auth/login', {
+        const loginResponse = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
           method: 'POST',
           credentials: 'include',
           headers: {
@@ -228,7 +230,8 @@ function AuthCallbackContent() {
     const performSignup = async () => {
       try {
         setIsProcessing(true);
-        const signupResponse = await fetch('/api/v1/auth/signup', {
+        
+        const signupResponse = await fetch(`${API_BASE_URL}/api/v1/auth/signup`, {
           method: 'POST',
           credentials: 'include',
           headers: {
@@ -295,7 +298,6 @@ function AuthCallbackContent() {
     handleAuthCallback();
   }, [router, searchParams]);
 
-  // 기존의 모든 return 문들도 그대로 복사
   if (status === 'checking') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
