@@ -20,7 +20,7 @@ export async function middleware(request: NextRequest) {
         }
 
         try {
-            const response = await fetch(`/api/v1/auth/me`, {
+            const response = await fetch(`https://api.match-a-lot.store/api/v1/auth/me`, {
                 method: 'GET',
                 headers: {
                     'Cookie': `auth-token=${authToken.value}`,

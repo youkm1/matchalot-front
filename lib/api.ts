@@ -186,7 +186,12 @@ export const authAPI = {
       headers: {
         'Accept': 'application/json',
       }
-    }).then(res => res.json());
+    }).then(res => {
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+      return res.json();
+    });
   },
   
   // 로그아웃은 별도 처리 (CSRF 토큰 포함)

@@ -23,16 +23,18 @@ export default function Header() {
 
   useEffect(() => {
   const checkAuth = async () => {
-    console.log('Header: 인증 상태 확인 시작');
-    console.log('Header: 현재 쿠키:', document.cookie);
-    
     try {
       const currentUser = await authAPI.getCurrentUser();
       console.log('🔍 Header: 사용자 정보 받음:', currentUser);
       setUser(currentUser);
     } catch (error) {
-      console.log('Header: 인증 실패 (정상):', error);
-      setUser(null);
+      let message;
+      if (error instanceof Error) {
+          console.log(error.message);
+      } else {
+        message = String(error);
+        console.log(message);
+      }
     } finally {
       setIsLoading(false);
     }

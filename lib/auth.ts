@@ -13,8 +13,8 @@ export async function getCurrentUser() {
         const response = await fetch(`https://api.match-a-lot.store/api/v1/auth/me`, {
             headers: { 
                 'Accept': 'application/json',
+                'Cookie': `auth-token=${authToken.value}`
             },
-            credentials:'include',
         });
         
         if (!response.ok) {
