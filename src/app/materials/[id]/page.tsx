@@ -23,51 +23,62 @@ export default function MaterialDetailPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        
-        // 1단계: 로그인 상태 확인 (실패해도 계속 진행)
-        let user = null;
-        try {
-          user = await authAPI.getCurrentUser();
-          setCurrentUser(user);
-          setIsLoggedIn(true);
-        } catch (authError) {
-          console.log('비로그인 사용자');
-          setIsLoggedIn(false);
-        }
-
-        // 2단계: 자료 정보 가져오기 (로그인 여부와 상관없이)
-        const data = await studyMaterialAPI.getById(materialId);
-        setMaterial(data);
-
-        // 3단계: 접근 권한 확인 (로그인한 경우만)
-        if (user) {
-          const isOwner = data.uploaderId === user.Id;
-          // TODO: 실제 매칭 완료 여부도 확인
-          setHasAccess(isOwner);
-        } else {
-          setHasAccess(false);
-        }
-        
-      } catch (err) {
-        console.error('족보 조회 실패:', err);
-        if (!isLoggedIn) {
-          setError('로그인이 필요합니다. 로그인 후 다시 시도해주세요.');
-        } else {
-          setError('족보를 불러올 수 없습니다.');
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
 
     if (materialId) {
       fetchData();
     }
   }, [materialId]);
+  const fetchData = async() => {
+    try {
+      setLoading(true);
+      setError(null);
 
+      let user = null;
+      try {
+        user = await authAPI.getCurrentUser();
+        setCurrentUser(user);
+        setIsLoggedIn(true);
+      } catch (authError) {
+        setIsLoggedIn(false);
+        setCurrentUser(null);
+      }
+      const data = await studyMaterialAPI.getById(materialId);
+      setMaterial(data);
+
+      if (user && data) {
+        const isOwner = data.uploaderId === user.id;
+
+        if (isOwner) {
+          console.log('소유자입니다');
+          setHasAccess(true);
+        } else {
+          try {
+            const hasCompleted = false;
+            setHasAccess(hasCompleted);
+          } catch (matchError) {
+            setHasAccess(false);
+          }
+        }
+      } else {
+        console.log('비로그인 유저');
+        setHasAccess(false);
+      }
+    } catch (err) {
+      if (err instanceof Error) {
+        if (err.message.includes('401') || err.message.includes('403')) {
+          setError('로그인이 필요한 자료입니다.');
+        } else if (err.message.includes('404')) {
+          setError('요청한 자료를 찾을 수 없습니다.');
+        } else {
+          setError('자료를 불러오는 중 오류가 발생했습니다.');
+        }
+      } else {
+        setError('알 수 없는 오류 발생하였습니다');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
   const handleMatchRequest = () => {
     if (!isLoggedIn) {
       // 로그인하지 않은 경우 로그인 페이지로
