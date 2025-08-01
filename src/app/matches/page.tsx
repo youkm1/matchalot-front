@@ -38,41 +38,50 @@ export default function MatchesPage() {
 
   const checkAuthAndFetchMatches = async () => {
     try {
-      // 사용자 인증 확인
+      setIsLoading(true);
+      setError('');
       const user = await authAPI.getCurrentUser();
       setCurrentUser(user);
       
       // 매칭 데이터 로드
-      await fetchAllMatches();
+      const [received, sent, active,my] = await Promise.all([
+        matchAPI.getReceived().catch(e => {
+          console.error('getReceived에서 실패',e);
+          return [];
+        }),
+        matchAPI.getSent().catch(e => {
+          console.error('getSent에서 실패',e);
+          return [];
+        }),
+        matchAPI.getActive().catch(e => {
+          console.error('getReceived에서 실패',e);
+          return [];
+        }),
+        matchAPI.getMine().catch(e => {
+          console.error('getSent에서 실패',e);
+          return [];
+        })
+      ]);
+      setReceivedRequests(Array.isArray(received)?received:[]);
+      setSentRequests(Array.isArray(sent)?sent:[]);
+      setActiveMatches(Array.isArray(active)?active:[]);
+
+      const completed = Array.isArray(my) ? my.filter(match => match.status === 'COMPLETED'):[];
+      setCompletedMatches(completed);
     } catch (error) {
       console.error('인증 또는 데이터 로드 실패:', error);
-      router.push('/login');
-    }
-  };
-
-  const fetchAllMatches = async () => {
-    try {
-      setIsLoading(true);
-      setError('');
-
-      const [received, sent, active, my] = await Promise.all([
-        matchAPI.getReceived(),
-        matchAPI.getSent(),
-        matchAPI.getActive(),
-        matchAPI.getMine()
-      ]);
-
-      setReceivedRequests(Array.isArray(received) ? received : []);
-      setSentRequests(Array.isArray(sent) ? sent : []);
-      setActiveMatches(Array.isArray(active) ? active : []);
-      
-      // 완료된 매칭들은 전체 매칭에서 COMPLETED 상태만 필터링
-      const completed = Array.isArray(my) ? my.filter(match => match.status === 'COMPLETED') : [];
-      setCompletedMatches(completed);
-
-    } catch (error) {
-      console.error('매칭 데이터 로드 실패:', error);
-      setError('매칭 정보를 불러오는 중 오류가 발생했습니다.');
+      if (error instanceof Error) {
+        if (error.message.includes('401') || error.message.includes('403')) {
+          setError('로그인이 필요합니다. 로그인 페이지로 이동합니다.');
+          setTimeout(() => router.push('/login'), 2000);
+        } else if (error.message.includes('404')) {
+          setError('매칭 API를 찾을 수 없습니다. 개발자에게 문의하세요.');
+        } else {
+          setError('매칭 정보를 불러오는 중 오류가 발생했습니다.');
+        }
+      } else {
+        setError('알 수 없는 오류가 발생했습니다.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -81,7 +90,7 @@ export default function MatchesPage() {
   const handleAccept = async (matchId: number) => {
     try {
       await matchAPI.accept(matchId.toString());
-      await fetchAllMatches(); // 데이터 새로고침
+      await checkAuthAndFetchMatches();
     } catch (error) {
       console.error('매칭 수락 실패:', error);
       setError('매칭 수락 중 오류가 발생했습니다.');
@@ -91,7 +100,7 @@ export default function MatchesPage() {
   const handleReject = async (matchId: number) => {
     try {
       await matchAPI.reject(matchId.toString());
-      await fetchAllMatches(); // 데이터 새로고침
+      await checkAuthAndFetchMatches(); // 데이터 새로고침
     } catch (error) {
       console.error('매칭 거절 실패:', error);
       setError('매칭 거절 중 오류가 발생했습니다.');
@@ -101,7 +110,7 @@ export default function MatchesPage() {
   const handleComplete = async (matchId: number) => {
     try {
       await matchAPI.complete(matchId.toString());
-      await fetchAllMatches(); // 데이터 새로고침
+      await checkAuthAndFetchMatches(); // 데이터 새로고침
     } catch (error) {
       console.error('매칭 완료 실패:', error);
       setError('매칭 완료 중 오류가 발생했습니다.');
@@ -146,6 +155,37 @@ export default function MatchesPage() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-8">
+          <div className="text-4xl mb-4">
+            {error.includes('로그인') ? '🔐' : error.includes('404') ? '🔍' : '😵'}
+          </div>
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">
+            {error.includes('로그인') ? '인증 필요' : error.includes('404') ? 'API 없음' : '오류 발생'}
+          </h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          
+          <div className="space-y-3">
+            <button
+              onClick={() => checkAuthAndFetchMatches()}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors"
+            >
+              다시 시도
+            </button>
+            <button
+              onClick={() => router.push('/login')}
+              className="w-full bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg transition-colors"
+            >
+              로그인 페이지로
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <div className="container mx-auto px-4 py-8">
       {/* 헤더 */}
