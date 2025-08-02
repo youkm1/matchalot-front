@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { matchAPI, studyMaterialAPI, authAPI } from '../../../../../lib/api';
 import { getDisplayName } from '@/utils/nickname';
+import { match } from 'assert';
 
 interface StudyMaterial {
   id: number;
@@ -54,18 +55,23 @@ export default function MatchRequestPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  useEffect(() => {
-    const fetchData = async () => {
+  useEffect(() => { 
+    if (materialId) {
+      fetchData();
+    }
+  }, [materialId]);
+
+  const fetchData = async () => {
       try {
         setIsLoading(true);
+        setError('');
         
-        // 현재 사용자 정보 가져오기
         const user = await authAPI.getCurrentUser();
         setCurrentUser(user);
 
-        // 타겟 자료 정보 가져오기
         const material = await studyMaterialAPI.getById(materialId);
         console.log('studyMaterialAPI.getById response:', JSON.stringify(material, null, 2));
+        
         if (!material.uploaderId) {
             console.error('uploaderId is missing or undefined in material:', material);
             setError('자료의 업로더 정보를 찾을 수 없습니다.');
@@ -73,32 +79,42 @@ export default function MatchRequestPage() {
         }
         setTargetMaterial(material);
 
-        // 내 자료인지 체크
-        if (material.uploaderId === user.Id) {
-          setError('자신이 업로드한 자료에는 매칭 요청을 보낼 수 없습니다.');
-          return;
-        }
-
-        // 내가 업로드한 자료들 가져오기
-        const myMaterialsData = await studyMaterialAPI.getMine();
-        setMyMaterials(Array.isArray(myMaterialsData) ? myMaterialsData : []);
-
-        // 잠재적 매칭 파트너 가져오기
-        const partners = await matchAPI.getPotentialPartners(materialId);
+        const [myMaterialsData, partners] = await Promise.all([
+          studyMaterialAPI.getMine().catch(e=>{
+            console.error('내 자료 갖고오기 실패: ',e);
+            return [];
+          }),
+          matchAPI.getPotentialPartners(materialId).catch(e => {
+            console.error('잠재적 파트너 로드 실패:', e);
+            return [];
+          })
+        ]);
+        
+        console.log('✅ 데이터 로드 완료:', {
+          myMaterials: myMaterialsData.length,
+          potentialPartners: partners.length
+        });
+        
+        setMyMaterials(Array.isArray(myMaterialsData) ? myMaterialsData : []); 
         setPotentialPartners(Array.isArray(partners) ? partners : []);
 
       } catch (error) {
-        console.error('데이터 로딩 실패:', error);
-        setError('데이터를 불러오는 중 오류가 발생했습니다.');
+        if (error instanceof Error) {
+          if (error.message.includes('401') || error.message.includes('403')) {
+            setError('로그인이 필요합니다. 로그인 페이지로 이동합니다.');
+            setTimeout(() => router.push('/login'), 2000);
+          } else if (error.message.includes('404')) {
+            setError('요청한 자료를 찾을 수 없습니다.');
+          } else {
+            setError('데이터를 불러오는 중 오류가 발생했습니다.');
+          }
+        } else {
+        setError('알 수 없는 오류가 발생했습니다.');
+      }
       } finally {
         setIsLoading(false);
-      }
-    };
-
-    if (materialId) {
-      fetchData();
     }
-  }, [materialId]);
+  };
 
   const handleSubmitRequest = async () => {
     if (!selectedMaterialId) {
@@ -119,8 +135,10 @@ export default function MatchRequestPage() {
         receiverId: targetMaterial.uploaderId
       };
 
-      console.log('materialId:', materialId); // 디버깅용
-      console.log('requestData:', requestData); // 디버깅용
+      console.log('매칭 요청 데이터:', {
+        materialId,
+        requestData
+      });
       
     
       await matchAPI.request(materialId, requestData);
@@ -134,7 +152,19 @@ export default function MatchRequestPage() {
 
     } catch (error) {
       console.error('매칭 요청 실패:', error);
-      setError('매칭 요청 중 오류가 발생했습니다. 다시 시도해주세요.');
+      if (error instanceof Error) {
+        if (error.message.includes('401') || error.message.includes('403')) {
+          setError('인증이 만료되었습니다. 다시 로그인해주세요.');
+        } else if (error.message.includes('400')) {
+          setError('잘못된 요청입니다. 입력 정보를 확인해주세요.');
+        } else if (error.message.includes('409')) {
+          setError('이미 매칭 요청을 보낸 자료입니다.');
+        } else {
+          setError('매칭 요청 중 오류가 발생했습니다. 다시 시도해주세요.');
+        }
+      } else {
+        setError('알 수 없는 오류가 발생했습니다.');
+      }
     } finally {
       setIsSubmitting(false);
     }
