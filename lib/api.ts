@@ -11,14 +11,35 @@ class ApiClient {
 
   
 
-  // CSRF 토큰 가져오기 (캐싱 지원)
+  // CSRF 토큰 가져오기 (쿠키에서 직접 읽기)
+  private getCsrfTokenFromCookie(): string {
+    if (typeof document !== 'undefined') {
+      const cookies = document.cookie.split(';');
+      for (let cookie of cookies) {
+        const [name, value] = cookie.trim().split('=');
+        if (name === 'XSRF-TOKEN') {
+          return decodeURIComponent(value);
+        }
+      }
+    }
+    return '';
+  }
+
+  // CSRF 토큰 가져오기
   private async getCsrfToken(): Promise<string> {
-    // 이미 토큰이 있으면 재사용
+    // 먼저 쿠키에서 토큰 확인
+    const cookieToken = this.getCsrfTokenFromCookie();
+    if (cookieToken) {
+      console.log('🔒 쿠키에서 CSRF 토큰 사용');
+      return cookieToken;
+    }
+
+    // 쿠키에 없으면 캐시된 토큰 사용
     if (this.csrfToken) {
       return this.csrfToken;
     }
 
-    // 이미 요청 중이면 대기
+    // 토큰 요청 중이면 대기
     if (this.csrfTokenPromise) {
       return this.csrfTokenPromise;
     }
@@ -47,6 +68,7 @@ class ApiClient {
         const data = await response.json();
         const token = data.token || '';
         console.log('🔒 CSRF 토큰 획득:', token ? '성공' : '실패');
+        console.log('🔒 획득한 토큰:', token);
         return token;
       }
       console.warn('🔒 CSRF 토큰 요청 실패:', response.status);
@@ -61,6 +83,7 @@ class ApiClient {
   private resetCsrfToken() {
     this.csrfToken = null;
     this.csrfTokenPromise = null;
+    console.log('🔒 CSRF 토큰 캐시 초기화');
   }
 
   async request(endpoint: string, options: ExtendedRequestInit = {}): Promise<any> {
