@@ -81,7 +81,7 @@ class ApiClient {
       try {
         const csrfToken = await this.getCsrfToken();
         if (csrfToken) {
-          headers['X-XSRF-TOKEN'] = csrfToken;
+          headers['X-CSRF-TOKEN'] = csrfToken;
           console.log(`🔒 ${method} 요청에 CSRF 토큰 추가:`, endpoint);
         } else {
           console.warn(`🔒 ${method} 요청이지만 CSRF 토큰이 없음:`, endpoint);
