@@ -25,34 +25,18 @@ class ApiClient {
     return '';
   }
 
-  // CSRF 토큰 가져오기
+  // CSRF 토큰 가져오기 (쿠키 우선)
   private async getCsrfToken(): Promise<string> {
     // 먼저 쿠키에서 토큰 확인
     const cookieToken = this.getCsrfTokenFromCookie();
     if (cookieToken) {
-      console.log('🔒 쿠키에서 CSRF 토큰 사용');
+      console.log('🔒 쿠키에서 CSRF 토큰 사용:', cookieToken);
       return cookieToken;
     }
 
-    // 쿠키에 없으면 캐시된 토큰 사용
-    if (this.csrfToken) {
-      return this.csrfToken;
-    }
-
-    // 토큰 요청 중이면 대기
-    if (this.csrfTokenPromise) {
-      return this.csrfTokenPromise;
-    }
-
-    // 새로운 토큰 요청
-    this.csrfTokenPromise = this.fetchCsrfToken();
-    
-    try {
-      this.csrfToken = await this.csrfTokenPromise;
-      return this.csrfToken;
-    } finally {
-      this.csrfTokenPromise = null;
-    }
+    // 쿠키에 없으면 API로 요청 (이때 쿠키도 함께 설정됨)
+    console.log('🔒 쿠키에 토큰 없음 - API 요청');
+    return await this.fetchCsrfToken();
   }
 
   private async fetchCsrfToken(): Promise<string> {
