@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { matchAPI, studyMaterialAPI, authAPI } from '../../../../../lib/api';
 import { getDisplayName } from '@/utils/nickname';
-import { match } from 'assert';
 
 interface StudyMaterial {
   id: number;
@@ -127,6 +126,12 @@ export default function MatchRequestPage() {
       return;
     }
 
+    // 자신의 족보에 매칭 요청하는 것을 방지
+    if (targetMaterial.uploaderId === currentUser.Id) {
+      setError('자신이 업로드한 자료에는 매칭 요청을 보낼 수 없습니다.');
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       setError('');
@@ -156,7 +161,19 @@ export default function MatchRequestPage() {
         if (error.message.includes('401') || error.message.includes('403')) {
           setError('인증이 만료되었습니다. 다시 로그인해주세요.');
         } else if (error.message.includes('400')) {
-          setError('잘못된 요청입니다. 입력 정보를 확인해주세요.');
+          // 백엔드 에러 메시지에서 구체적인 내용 추출
+          const errorMessage = error.message;
+          if (errorMessage.includes('본인과는 매칭할 수 없습니다')) {
+            setError('자신이 업로드한 자료에는 매칭 요청을 보낼 수 없습니다.');
+          } else if (errorMessage.includes('본인의 족보만 매칭에 사용할 수 있습니다')) {
+            setError('본인이 업로드한 족보만 교환에 사용할 수 있습니다.');
+          } else if (errorMessage.includes('해당 과목의 족보를 가지고 있지 않습니다')) {
+            setError('상대방이 같은 과목의 족보를 가지고 있지 않아 매칭이 불가능합니다.');
+          } else if (errorMessage.includes('신뢰도가 부족하여 매칭할 수 없습니다')) {
+            setError('신뢰도가 부족합니다. 좋은 자료를 업로드하여 신뢰도를 높여보세요.');
+          } else {
+            setError('잘못된 요청입니다. 입력 정보를 확인해주세요.');
+          }
         } else if (error.message.includes('409')) {
           setError('이미 매칭 요청을 보낸 자료입니다.');
         } else {
