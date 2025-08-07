@@ -9,8 +9,6 @@ class ApiClient {
   private csrfToken: string | null = null;
   private csrfTokenPromise: Promise<string> | null = null;
 
-  
-
   // CSRF 토큰 가져오기 (쿠키에서 직접 읽기)
   private getCsrfTokenFromCookie(): string {
     if (typeof document !== 'undefined') {
@@ -71,7 +69,7 @@ class ApiClient {
   }
 
   async request(endpoint: string, options: ExtendedRequestInit = {}): Promise<any> {
-    const url = endpoint.startsWith('http') ? endpoint : endpoint;
+    const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
     const method = (options.method || 'GET').toUpperCase();
     
     const headers: Record<string, string> = {
