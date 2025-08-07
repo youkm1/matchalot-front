@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { matchAPI, studyMaterialAPI, authAPI } from '../../../../../lib/api';
+import { studyMaterialAPI, authAPI } from '../../../../../lib/api';
 import { getDisplayName } from '@/utils/nickname';
+import { useMatchSocket } from '../../../../../hooks/useMatchSocket';
 
 interface StudyMaterial {
   id: number;
@@ -53,6 +54,15 @@ export default function MatchRequestPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  
+  // WebSocket 연결
+  const { 
+    requestMatch, 
+    isConnected, 
+    notifications,
+    error: socketError,
+    currentUser: socketUser 
+  } = useMatchSocket();
 
   useEffect(() => { 
     if (materialId) {
@@ -83,7 +93,15 @@ export default function MatchRequestPage() {
             console.error('내 자료 갖고오기 실패: ',e);
             return [];
           }),
-          matchAPI.getPotentialPartners(materialId).catch(e => {
+          studyMaterialAPI.getAll().then(materials => 
+            // 같은 과목의 다른 사용자 자료들을 찾음
+            materials.filter((m: { subject: any; examType: any; id: number; uploaderId: any; }) => 
+              m.subject === material.subject && 
+              m.examType === material.examType &&
+              m.id !== parseInt(materialId) &&
+              m.uploaderId !== user.Id
+            )
+          ).catch(e => {
             console.error('잠재적 파트너 로드 실패:', e);
             return [];
           })
@@ -135,18 +153,24 @@ export default function MatchRequestPage() {
     try {
       setIsSubmitting(true);
       setError('');
-      const requestData = {
-        requesterMaterialId: parseInt(selectedMaterialId),
-        receiverId: targetMaterial.uploaderId
-      };
 
-      console.log('매칭 요청 데이터:', {
-        materialId,
-        requestData
+      if (!isConnected) {
+        setError('서버와 연결되지 않았습니다. 잠시 후 다시 시도해주세요.');
+        return;
+      }
+
+      console.log('WebSocket 매칭 요청:', {
+        materialId: parseInt(materialId),
+        receiverId: targetMaterial.uploaderId,
+        requesterMaterialId: parseInt(selectedMaterialId)
       });
       
-    
-      await matchAPI.request(materialId, requestData);
+      // WebSocket으로 매칭 요청 전송
+      requestMatch(
+        parseInt(materialId),
+        targetMaterial.uploaderId,
+        parseInt(selectedMaterialId)
+      );
       
       setSuccess('매칭 요청이 성공적으로 전송되었습니다!');
       
@@ -245,12 +269,22 @@ export default function MatchRequestPage() {
           </div>
         )}
 
+        {/* WebSocket 연결 상태 */}
+        {!isConnected && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center">
+              <div className="text-yellow-500 mr-3">⚠️</div>
+              <p className="text-yellow-800">서버와 연결 중입니다. 잠시만 기다려주세요...</p>
+            </div>
+          </div>
+        )}
+
         {/* 에러 메시지 */}
-        {error && (
+        {(error || socketError) && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
             <div className="flex items-center">
               <div className="text-red-500 mr-3">❌</div>
-              <p className="text-red-800">{error}</p>
+              <p className="text-red-800">{error || socketError}</p>
             </div>
           </div>
         )}
@@ -342,9 +376,9 @@ export default function MatchRequestPage() {
                 {/* 요청 버튼 */}
                 <button
                   onClick={handleSubmitRequest}
-                  disabled={!selectedMaterialId || isSubmitting || !!error}
+                  disabled={!selectedMaterialId || isSubmitting || !!error || !isConnected}
                   className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
-                    !selectedMaterialId || isSubmitting || !!error
+                    !selectedMaterialId || isSubmitting || !!error || !isConnected
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       : 'bg-blue-600 hover:bg-blue-700 text-white'
                   }`}

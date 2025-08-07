@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { matchAPI } from "../../lib/api";
 import { getDisplayName } from "@/utils/nickname";
+import { useMatchSocket } from "../../hooks/useMatchSocket";
 
 interface MatchResponse {
     id: number;
@@ -29,6 +30,17 @@ export default function MatchManagement() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
     const [activeTab, setActiveTab] = useState<'received' | 'sent' | 'active' | 'completed'>('received');
+
+    // WebSocket 연결
+    const { 
+        acceptMatch, 
+        rejectMatch, 
+        completeMatch,
+        notifications,
+        isConnected,
+        error: socketError,
+        removeNotification 
+    } = useMatchSocket();
 
     useEffect(() => {
         fetchAllMatches();
