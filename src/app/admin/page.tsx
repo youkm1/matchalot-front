@@ -3,27 +3,10 @@
 import { useEffect, useState } from 'react';
 import { authAPI, adminAPI } from '../../../lib/api';
 import { getDisplayName } from '@/utils/nickname';
+import { User, StudyMaterial } from '../../../types';
 
-interface PendingMaterial {
-  id: number;
-  title: string;
-  subject: string;
-  examType: string;
-  semesterDisplay: string;
-  questionCount: number;
-  uploaderNickname: string;
-  uploaderTrustScore: number;
-  createdAt: string;
-}
-
-interface User {
-  Id: number;
-  nickname: string;
-  email: string;
-  role: string;
-  trustScore: number;
-  createdAt: string;
-}
+// PendingMaterial은 StudyMaterial과 유사하므로 타입 별칭 사용
+type PendingMaterial = Omit<StudyMaterial, 'uploaderId' | 'tags'>;
 
 export default function AdminPage() {
   const [currentUser, setCurrentUser] = useState<any>(null);

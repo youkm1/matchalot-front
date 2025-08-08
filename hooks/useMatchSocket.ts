@@ -1,15 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { authAPI } from '../lib/api';
-
-interface MatchNotification {
-  type: string;
-  data: any;
-}
-
-interface WebSocketMessage {
-  type: string;
-  data: any;
-}
+import { User, MatchNotification, WebSocketMessage } from '../types';
 
 export const useMatchSocket = () => {
   const [socket, setSocket] = useState<WebSocket | null>(null);
@@ -17,7 +8,7 @@ export const useMatchSocket = () => {
   const [notifications, setNotifications] = useState<MatchNotification[]>([]);
   const [error, setError] = useState<string | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   const connect = async () => {
     try {

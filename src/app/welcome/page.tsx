@@ -5,15 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { authAPI } from '../../../lib/api';
 import { getDisplayName } from '@/utils/nickname';
-
-
-interface User {
-  Id: number;
-  nickname: string;
-  email: string;
-  trustScore: number;
-  createdAt: string;
-}
+import { User } from '../../../types';
 
 export default function WelcomePage() {
   const router = useRouter();

@@ -4,21 +4,7 @@ import { useEffect, useState } from "react";
 import { matchAPI } from "../../lib/api";
 import { getDisplayName } from "@/utils/nickname";
 import { useMatchSocket } from "../../hooks/useMatchSocket";
-
-interface MatchResponse {
-    id: number;
-    requesterId: number;
-    receiverId: number;
-    requesterMaterialId: number;
-    recevierMaterialId: number;
-    status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'COMPLETED' | 'EXPIRED';
-    requesterNickname: string;
-    partnerNickname: string;
-    requesterMaterialTitle: string;
-    partnerMaterialTitle: string;
-    createdAt: string;
-    updatedAt: string;
-}
+import { MatchResponse } from "../../types";
 
 //매치 총 관리 페이지
 export default function MatchManagement() {
