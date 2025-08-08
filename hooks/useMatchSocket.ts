@@ -16,7 +16,7 @@ export const useMatchSocket = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [notifications, setNotifications] = useState<MatchNotification[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
 
   const connect = async () => {
@@ -71,6 +71,7 @@ export const useMatchSocket = () => {
   const disconnect = () => {
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
     }
     if (socket) {
       socket.close();
