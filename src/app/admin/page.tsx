@@ -185,7 +185,12 @@ export default function AdminPage() {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                          {material.title}
+                          <button
+                            onClick={() => window.open(`/materials/${material.id}`, '_blank')}
+                            className="text-blue-600 hover:text-blue-800 hover:underline transition-colors text-left"
+                          >
+                            {material.title}
+                          </button>
                         </h3>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600 mb-4">
                           <div>
@@ -303,7 +308,7 @@ export default function AdminPage() {
                           {user.trustScore}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(user.createdAt).toLocaleDateString('ko-KR')}
+                          {user.createdAt ? new Date(user.createdAt).toLocaleDateString('ko-KR') : '-'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           {user.role !== 'ADMIN' && (
