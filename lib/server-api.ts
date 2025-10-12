@@ -73,10 +73,11 @@ export async function getServerSubjects(): Promise<Array<{id: string, name: stri
     return subjects.map((subject: string) => ({
       id: subject,
       name: 
-        subject === 'KOREAN_WOMEN_HISTORY' ? '한국여성의역사' :
-        subject === 'ALGORITHM' ? '알고리즘' :
-        subject === 'DIGITAL_LOGIC_CIRCUIT' ? '디지털논리회로' :
-        subject === 'MODERN_THOUGH' ? '보고듣고만지는현대사상' : subject
+        subject === 'IMAGE_PROCESSING' ? '영상정보처리' :
+        subject === 'LINUX' ? '리눅스' :
+        subject === 'KOREAN_CULTURE_UNDERSTANDING' ? '한국문화의이해' :
+        subject === 'CLASSIC_FIELD_STORY' ? '고전의현장과스토리' :
+        subject === 'DIGITAL_PHILOSOPHY'? '디지털철학': subject
     }));
   } catch (error) {
     console.error('Error fetching subjects:', error);

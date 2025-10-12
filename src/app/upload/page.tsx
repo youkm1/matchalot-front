@@ -76,10 +76,11 @@ export default function UploadPage() {
         setError('기본 데이터 로드에 실패했습니다.');
         
         setSubjects([
-          { id: '한국여성의역사', name: '한국여성의역사' },
-          { id: '알고리즘', name: '알고리즘' },
-          { id: '디지털논리회로', name: '디지털논리회로'},
-          { id: '통계학입문', name: '통계학입문'}
+          { id: '영상정보처리', name: '영상정보처리' },
+          { id: '리눅스', name: '리눅스' },
+          { id: '한국문화의이해', name: '한국문화의이해'},
+          { id: '고전의현장과스토리', name: '고전의현장과스토리'},
+          { id: '디지털철학', name: '디지털철학'}
         ]);
         setExamTypes([
           { id: '중간고사', name: '중간고사' },
