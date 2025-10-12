@@ -72,8 +72,9 @@ export default function MatchesPage() {
       console.error('인증 또는 데이터 로드 실패:', error);
       if (error instanceof Error) {
         if (error.message.includes('401') || error.message.includes('403')) {
-          setError('로그인이 필요합니다. 로그인 페이지로 이동합니다.');
-          setTimeout(() => router.push('/login'), 2000);
+          alert('로그인을 진행해주세요');
+          router.push('/login');
+          return;
         } else if (error.message.includes('404')) {
           setError('매칭 API를 찾을 수 없습니다. 개발자에게 문의하세요.');
         } else {

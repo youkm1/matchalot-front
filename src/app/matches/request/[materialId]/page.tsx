@@ -89,8 +89,9 @@ export default function MatchRequestPage() {
       } catch (error) {
         if (error instanceof Error) {
           if (error.message.includes('401') || error.message.includes('403')) {
-            setError('로그인이 필요합니다. 로그인 페이지로 이동합니다.');
-            setTimeout(() => router.push('/login'), 2000);
+            alert('로그인을 진행해주세요');
+            router.push('/login');
+            return;
           } else if (error.message.includes('404')) {
             setError('요청한 자료를 찾을 수 없습니다.');
           } else {
@@ -154,7 +155,9 @@ export default function MatchRequestPage() {
       console.error('매칭 요청 실패:', error);
       if (error instanceof Error) {
         if (error.message.includes('401') || error.message.includes('403')) {
-          setError('인증이 만료되었습니다. 다시 로그인해주세요.');
+          alert('로그인을 진행해주세요');
+          router.push('/login');
+          return;
         } else if (error.message.includes('400')) {
           // 백엔드 에러 메시지에서 구체적인 내용 추출
           const errorMessage = error.message;

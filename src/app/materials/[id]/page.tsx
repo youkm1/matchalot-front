@@ -66,7 +66,9 @@ export default function MaterialDetailPage() {
     } catch (err) {
       if (err instanceof Error) {
         if (err.message.includes('401') || err.message.includes('403')) {
-          setError('로그인이 필요한 자료입니다.');
+          alert('로그인을 진행해주세요');
+          router.push('/login');
+          return;
         } else if (err.message.includes('404')) {
           setError('요청한 자료를 찾을 수 없습니다.');
         } else {
