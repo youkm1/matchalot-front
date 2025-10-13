@@ -63,29 +63,29 @@ export default function ToastNotification({
 
   return (
     <div 
-      className={`fixed top-4 right-4 z-50 transition-all duration-300 transform ${
+      className={`transition-all duration-300 transform ${
         isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
       }`}
     >
-      <div className={`max-w-sm bg-white border-l-4 rounded-lg shadow-lg overflow-hidden ${getThemeColor(notification.type)}`}>
+      <div className={`w-80 bg-white border-l-4 rounded-lg shadow-lg overflow-hidden ${getThemeColor(notification.type)}`}>
         <div className="p-4">
-          <div className="flex items-start">
-            <div className="flex-shrink-0 text-xl mr-3">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 text-xl">
               {getIcon(notification.type)}
             </div>
             
-            <div className="flex-1 min-w-0">
-              <h4 className="text-sm font-semibold text-gray-900 mb-1">
+            <div className="flex-1 min-w-0 text-left">
+              <h4 className="text-sm font-semibold text-gray-900 mb-1 leading-tight">
                 {notification.title}
               </h4>
-              <p className="text-sm text-gray-700">
+              <p className="text-sm text-gray-700 leading-relaxed break-words">
                 {notification.message}
               </p>
             </div>
             
             <button
               onClick={handleClose}
-              className="flex-shrink-0 ml-2 text-gray-400 hover:text-gray-600 transition-colors"
+              className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors p-1"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
