@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { authAPI } from '../../../lib/api';
 import { getDisplayName } from '../../utils/nickname';
 import { User } from '../../../types';
+import NotificationBell from '../notifications/NotificationBell';
 
 
 export default function Header() {
@@ -145,6 +146,9 @@ export default function Header() {
               <div className="w-8 h-8 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600"></div>
             ) : isLoggedIn && user ? (
               <>
+                {/* 알림 벨 - 로그인된 사용자만 보이도록 */}
+                <NotificationBell />
+                
                 {/* ✅ 실제 사용자 정보 표시 */}
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center space-x-2">
@@ -248,6 +252,10 @@ export default function Header() {
               <div className="pt-4 border-t border-gray-200">
                 {isLoggedIn && user ? (
                   <div className="space-y-3">
+                    {/* 모바일 알림 벨 */}
+                    <div className="px-2 py-1">
+                      <NotificationBell />
+                    </div>
                     <div className="flex items-center space-x-2 px-2">
                       <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                         <span className="text-blue-600 font-semibold text-sm">
