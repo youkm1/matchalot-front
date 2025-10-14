@@ -413,6 +413,56 @@ export const adminAPI = {
   },
 };
 
+// 알림 API 추가
+export const notificationAPI = {
+  // 알림 목록 조회
+  getAll: (unreadOnly?: boolean) => {
+    const query = unreadOnly ? '?unread=true' : '';
+    return apiClient.get(`/api/v1/notifications${query}`);
+  },
+
+  // 읽지 않은 개수 조회
+  getUnreadCount: () => apiClient.get('/api/v1/notifications/unread-count'),
+
+  // 알림 읽음 처리
+  markAsRead: (id: number) => apiClient.put(`/api/v1/notifications/${id}/read`),
+
+  // 모든 알림 읽음 처리
+  markAllAsRead: () => apiClient.put('/api/v1/notifications/read-all'),
+
+  // 알림 삭제
+  delete: (id: number) => apiClient.delete(`/api/v1/notifications/${id}`),
+};
+
+// 통계 API 추가
+export const analyticsAPI = {
+  // 현재 통계 조회 (관리자 전용)
+  getStatistics: () => {
+    console.log('📊 통계 조회');
+    return apiClient.get('/api/v1/analytics/statistics');
+  },
+
+  // 시간대별 통계
+  getHourlyStats: (date?: string) => {
+    const query = date ? `?date=${date}` : '';
+    return apiClient.get(`/api/v1/analytics/statistics/hourly${query}`);
+  },
+
+  // 사용자별 활동 통계
+  getUserStats: (limit = 10) => {
+    return apiClient.get(`/api/v1/analytics/statistics/users?limit=${limit}`);
+  },
+
+  // 매칭 성공률 통계
+  getSuccessRate: () => apiClient.get('/api/v1/analytics/statistics/success-rate'),
+
+  // 통계 초기화 (관리자 전용)
+  resetStatistics: () => {
+    console.log('📊 통계 초기화');
+    return apiClient.post('/api/v1/analytics/statistics/reset');
+  },
+};
+
 export const ApiUtils = {
   buildQueryString: (params: Record<string, any>): string => {
     const filtered = Object.entries(params).filter(([_, value]) => value !== undefined && value !== null);

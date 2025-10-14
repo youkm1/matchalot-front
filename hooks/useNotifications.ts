@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-
-const API_BASE_URL = 'https://api.match-a-lot.store';
+import { notificationAPI } from '../lib/api';
 
 export interface Notification {
   id: number;
@@ -24,7 +23,7 @@ export const useNotifications = () => {
       eventSource.close();
     }
 
-    const sse = new EventSource(`${API_BASE_URL}/api/v1/notifications/stream`, {
+    const sse = new EventSource('https://api.match-a-lot.store/api/v1/notifications/stream', {
       withCredentials: true
     });
 
@@ -81,19 +80,8 @@ export const useNotifications = () => {
   // 읽지 않은 개수 조회
   const fetchUnreadCount = useCallback(async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/notifications/unread-count`, {
-        credentials: 'include'
-      });
-      
-      if (response.status === 401) {
-        // 로그인 필요
-        return;
-      }
-      
-      if (response.ok) {
-        const data = await response.json();
-        setUnreadCount(data.unreadCount);
-      }
+      const data = await notificationAPI.getUnreadCount();
+      setUnreadCount(data.unreadCount);
     } catch (error) {
       console.error('읽지 않은 알림 개수 조회 실패:', error);
     }
@@ -102,18 +90,8 @@ export const useNotifications = () => {
   // 알림 목록 조회
   const fetchNotifications = useCallback(async (unreadOnly = false) => {
     try {
-      const url = unreadOnly 
-        ? `${API_BASE_URL}/api/v1/notifications?unread=true`
-        : `${API_BASE_URL}/api/v1/notifications`;
-      
-      const response = await fetch(url, {
-        credentials: 'include'
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setNotifications(data);
-      }
+      const data = await notificationAPI.getAll(unreadOnly);
+      setNotifications(data);
     } catch (error) {
       console.error('알림 목록 조회 실패:', error);
     }
@@ -122,17 +100,11 @@ export const useNotifications = () => {
   // 알림 읽음 처리
   const markAsRead = useCallback(async (id: number) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/notifications/${id}/read`, {
-        method: 'PUT',
-        credentials: 'include'
-      });
-      
-      if (response.ok) {
-        setNotifications(prev => 
-          prev.map(n => n.id === id ? { ...n, isRead: true } : n)
-        );
-        setUnreadCount(prev => Math.max(0, prev - 1));
-      }
+      await notificationAPI.markAsRead(id);
+      setNotifications(prev => 
+        prev.map(n => n.id === id ? { ...n, isRead: true } : n)
+      );
+      setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
       console.error('알림 읽음 처리 실패:', error);
     }
@@ -141,15 +113,9 @@ export const useNotifications = () => {
   // 모든 알림 읽음 처리
   const markAllAsRead = useCallback(async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/notifications/read-all`, {
-        method: 'PUT',
-        credentials: 'include'
-      });
-      
-      if (response.ok) {
-        setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
-        setUnreadCount(0);
-      }
+      await notificationAPI.markAllAsRead();
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+      setUnreadCount(0);
     } catch (error) {
       console.error('모든 알림 읽음 처리 실패:', error);
     }
@@ -158,17 +124,11 @@ export const useNotifications = () => {
   // 알림 삭제
   const deleteNotification = useCallback(async (id: number) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/notifications/${id}`, {
-        method: 'DELETE',
-        credentials: 'include'
-      });
-      
-      if (response.ok) {
-        setNotifications(prev => prev.filter(n => n.id !== id));
-        const notification = notifications.find(n => n.id === id);
-        if (notification && !notification.isRead) {
-          setUnreadCount(prev => Math.max(0, prev - 1));
-        }
+      await notificationAPI.delete(id);
+      setNotifications(prev => prev.filter(n => n.id !== id));
+      const notification = notifications.find(n => n.id === id);
+      if (notification && !notification.isRead) {
+        setUnreadCount(prev => Math.max(0, prev - 1));
       }
     } catch (error) {
       console.error('알림 삭제 실패:', error);

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { matchAPI } from "../../lib/api";
 import { getDisplayName } from "@/utils/nickname";
-import { useMatchSocket } from "../../hooks/useMatchSocket";
+import { useNotifications } from "../../hooks/useNotifications";
 import { MatchResponse } from "../../types";
 
 //매치 총 관리 페이지
@@ -17,16 +17,12 @@ export default function MatchManagement() {
     const [error, setError] = useState('');
     const [activeTab, setActiveTab] = useState<'received' | 'sent' | 'active' | 'completed'>('received');
 
-    // WebSocket 연결
-    const { 
-        acceptMatch, 
-        rejectMatch, 
-        completeMatch,
+    // SSE 알림 시스템 사용
+    const {
         notifications,
         isConnected,
-        error: socketError,
-        removeNotification 
-    } = useMatchSocket();
+        markAsRead
+    } = useNotifications();
 
     useEffect(() => {
         fetchAllMatches();
@@ -62,26 +58,18 @@ export default function MatchManagement() {
 
     const handleAccept = async (matchId: number) => {
         try {
-            if (!isConnected) {
-                setError('서버와 연결되지 않았습니다. 잠시 후 다시 시도해주세요.');
-                return;
-            }
-            acceptMatch(matchId);
-            // WebSocket 응답 후 자동으로 목록이 업데이트될 예정
+            await matchAPI.accept(matchId.toString());
+            await fetchAllMatches(); // 데이터 새로고침
         } catch (error) {
-            console.error('매칭 수락 실패: ',error);
+            console.error('매칭 수락 실패:', error);
             setError('매칭 수락 중 오류가 발생했습니다.');
         }
     };
 
     const handleReject = async (matchId: number) => {
         try {
-            if (!isConnected) {
-                setError('서버와 연결되지 않았습니다. 잠시 후 다시 시도해주세요.');
-                return;
-            }
-            rejectMatch(matchId);
-            // WebSocket 응답 후 자동으로 목록이 업데이트될 예정
+            await matchAPI.reject(matchId.toString());
+            await fetchAllMatches(); // 데이터 새로고침
         } catch (error) {
             console.error('매칭 거절 실패:', error);
             setError('매칭 거절 중 오류가 발생했습니다.');
@@ -90,12 +78,8 @@ export default function MatchManagement() {
 
     const handleComplete = async (matchId: number) => {
         try {
-            if (!isConnected) {
-                setError('서버와 연결되지 않았습니다. 잠시 후 다시 시도해주세요.');
-                return;
-            }
-            completeMatch(matchId);
-            // WebSocket 응답 후 자동으로 목록이 업데이트될 예정
+            await matchAPI.complete(matchId.toString());
+            await fetchAllMatches(); // 데이터 새로고침
         } catch (error) {
             console.error('매칭 완료 실패:', error);
             setError('매칭 완료 중 오류가 발생했습니다.');
@@ -145,22 +129,45 @@ export default function MatchManagement() {
     <div className="bg-white rounded-lg shadow-sm p-6">
       <h2 className="text-xl font-semibold text-gray-900 mb-6">매칭 관리</h2>
       
-      {/* WebSocket 연결 상태 */}
-      {!isConnected && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+      {/* SSE 연결 상태 */}
+      {isConnected && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
           <div className="flex items-center">
-            <div className="text-yellow-500 mr-3">⚠️</div>
-            <p className="text-yellow-800">서버와 연결 중입니다. 실시간 매칭 기능이 제한될 수 있습니다.</p>
+            <div className="text-green-500 mr-3">🔔</div>
+            <p className="text-green-800">실시간 알림 연결됨</p>
           </div>
         </div>
       )}
 
+      {/* 실시간 알림 표시 */}
+      {notifications.length > 0 && (
+        <div className="mb-6">
+          {notifications.slice(0, 3).map((notification) => (
+            <div key={notification.id} 
+                 className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-2">
+              <div className="flex justify-between">
+                <div>
+                  <p className="font-medium text-blue-800">{notification.title}</p>
+                  <p className="text-blue-600">{notification.message}</p>
+                </div>
+                <button 
+                  onClick={() => markAsRead(notification.id)}
+                  className="text-blue-400 hover:text-blue-600"
+                >
+                  ✓
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* 에러 메시지 */}
-      {(error || socketError) && (
+      {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
           <div className="flex items-center">
             <div className="text-red-500 mr-3">❌</div>
-            <p className="text-red-800">{error || socketError}</p>
+            <p className="text-red-800">{error}</p>
           </div>
         </div>
       )}

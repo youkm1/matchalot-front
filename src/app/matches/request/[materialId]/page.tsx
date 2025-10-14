@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { studyMaterialAPI, authAPI } from '../../../../../lib/api';
+import { studyMaterialAPI, authAPI, matchAPI } from '../../../../../lib/api';
 import { getDisplayName } from '@/utils/nickname';
-import { useMatchSocket } from '../../../../../hooks/useMatchSocket';
+import { useNotifications } from '../../../../../hooks/useNotifications';
 import { StudyMaterial, User } from '../../../../../types';
 
 // PotentialPartner는 StudyMaterial과 거의 같으므로 타입 별칭 사용
@@ -26,14 +26,12 @@ export default function MatchRequestPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   
-  // WebSocket 연결
-  const { 
-    requestMatch, 
-    isConnected, 
+  // SSE 알림 시스템 사용
+  const {
     notifications,
-    error: socketError,
-    currentUser: socketUser 
-  } = useMatchSocket();
+    isConnected,
+    markAsRead
+  } = useNotifications();
 
   useEffect(() => { 
     if (materialId) {
@@ -126,26 +124,23 @@ export default function MatchRequestPage() {
       setIsSubmitting(true);
       setError('');
 
-      if (!isConnected) {
-        setError('서버와 연결되지 않았습니다. 잠시 후 다시 시도해주세요.');
-        return;
-      }
-
-      console.log('WebSocket 매칭 요청:', {
-        materialId: parseInt(materialId),
+      console.log('REST API 매칭 요청:', {
+        materialId: materialId,
         receiverId: targetMaterial.uploaderId,
         requesterMaterialId: parseInt(selectedMaterialId)
       });
       
-      // WebSocket으로 매칭 요청 전송
-      requestMatch(
-        parseInt(materialId),
-        targetMaterial.uploaderId,
-        parseInt(selectedMaterialId)
-      );
-      
+      // REST API로 매칭 요청
+      const response = await matchAPI.request(materialId, {
+        receiverId: targetMaterial.uploaderId,
+        requesterMaterialId: parseInt(selectedMaterialId)
+      });
+
+      console.log('매칭 요청 성공:', response);
       setSuccess('매칭 요청이 성공적으로 전송되었습니다!');
-      
+
+      // SSE로 실시간 알림 자동 수신
+
       // 2초 후 매칭 관리 페이지로 이동
       setTimeout(() => {
         router.push('/matches');
@@ -243,22 +238,45 @@ export default function MatchRequestPage() {
           </div>
         )}
 
-        {/* WebSocket 연결 상태 */}
-        {!isConnected && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+        {/* SSE 연결 상태 표시 */}
+        {isConnected && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
             <div className="flex items-center">
-              <div className="text-yellow-500 mr-3">⚠️</div>
-              <p className="text-yellow-800">서버와 연결 중입니다. 잠시만 기다려주세요...</p>
+              <div className="text-green-500 mr-3">🔔</div>
+              <p className="text-green-800">실시간 알림 연결됨</p>
             </div>
           </div>
         )}
 
+        {/* 실시간 알림 표시 */}
+        {notifications.length > 0 && (
+          <div className="mb-6">
+            {notifications.slice(0, 3).map((notification) => (
+              <div key={notification.id} 
+                   className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-2">
+                <div className="flex justify-between">
+                  <div>
+                    <p className="font-medium text-blue-800">{notification.title}</p>
+                    <p className="text-blue-600">{notification.message}</p>
+                  </div>
+                  <button 
+                    onClick={() => markAsRead(notification.id)}
+                    className="text-blue-400 hover:text-blue-600"
+                  >
+                    ✓
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* 에러 메시지 */}
-        {(error || socketError) && (
+        {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
             <div className="flex items-center">
               <div className="text-red-500 mr-3">❌</div>
-              <p className="text-red-800">{error || socketError}</p>
+              <p className="text-red-800">{error}</p>
             </div>
           </div>
         )}
@@ -350,9 +368,9 @@ export default function MatchRequestPage() {
                 {/* 요청 버튼 */}
                 <button
                   onClick={handleSubmitRequest}
-                  disabled={!selectedMaterialId || isSubmitting || !!error || !isConnected}
+                  disabled={!selectedMaterialId || isSubmitting || !!error}
                   className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
-                    !selectedMaterialId || isSubmitting || !!error || !isConnected
+                    !selectedMaterialId || isSubmitting || !!error
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       : 'bg-blue-600 hover:bg-blue-700 text-white'
                   }`}
