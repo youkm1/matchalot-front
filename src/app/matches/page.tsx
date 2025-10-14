@@ -41,6 +41,9 @@ export default function MatchesPage() {
       setIsLoading(true);
       setError('');
       const user = await authAPI.getCurrentUser();
+      if (!user) {
+        throw new Error('401: 로그인이 필요합니다.');
+      }
       setCurrentUser(user);
       
       // 매칭 데이터 로드
@@ -71,9 +74,12 @@ export default function MatchesPage() {
     } catch (error) {
       console.error('인증 또는 데이터 로드 실패:', error);
       if (error instanceof Error) {
-        if (error.message.includes('401') || error.message.includes('403')) {
-          alert('로그인을 진행해주세요');
-          router.push('/login');
+        if (error.message.includes('401') || error.message.includes('403') || error.message.includes('로그인')) {
+          setIsLoading(false);
+          setTimeout(() => {
+            alert('로그인이 필요한 서비스입니다. 로그인 페이지로 이동합니다.');
+            router.push('/login');
+          }, 100);
           return;
         } else if (error.message.includes('404')) {
           setError('매칭 API를 찾을 수 없습니다. 개발자에게 문의하세요.');
