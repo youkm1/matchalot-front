@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { authAPI, adminAPI } from '../../../lib/api';
+import { authAPI, adminAPI } from '@/lib/api';
 import { getDisplayName } from '@/utils/nickname';
-import { User, StudyMaterial } from '../../../types';
+import { User, StudyMaterial } from '@/types';
 
 // PendingMaterial은 StudyMaterial과 유사하므로 타입 별칭 사용
 type PendingMaterial = Omit<StudyMaterial, 'uploaderId' | 'tags'>;

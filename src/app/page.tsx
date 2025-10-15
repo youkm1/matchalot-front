@@ -1,7 +1,7 @@
 'use client'
 import Link from "next/link";
 import { useEffect } from "react";
-import { authAPI } from "../../lib/api";
+import { authAPI } from "@/lib/api";
 
 export default function HomePage() {
   useEffect(() => {

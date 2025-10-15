@@ -1,6 +1,6 @@
 'use client';
 
-import { useNotifications, Notification } from '../../../hooks/useNotifications';
+import { useNotifications, Notification } from '@/hooks/useNotifications';
 
 interface NotificationItemProps {
   notification: Notification;

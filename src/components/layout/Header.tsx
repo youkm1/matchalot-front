@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { authAPI } from '../../../lib/api';
-import { getDisplayName } from '../../utils/nickname';
-import { User } from '../../../types';
-import NotificationBell from '../notifications/NotificationBell';
+import { authAPI } from '@/lib/api';
+import { getDisplayName } from '@/utils/nickname';
+import { User } from '@/types';
+import NotificationBell from '@/components/notifications/NotificationBell';
 
 
 export default function Header() {

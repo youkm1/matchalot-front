@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useNotifications } from '../../../hooks/useNotifications';
-import NotificationItem from '../../components/notifications/NotificationItem';
+import { useNotifications } from '@/hooks/useNotifications';
+import NotificationItem from '@/components/notifications/NotificationItem';
 
 export default function NotificationsPage() {
   const [filter, setFilter] = useState<'all' | 'unread'>('all');

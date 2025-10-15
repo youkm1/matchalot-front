@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { studyMaterialAPI } from '../../../lib/api';
+import { studyMaterialAPI } from '@/lib/api';
 
 interface QuestionSolution {
   number: number;

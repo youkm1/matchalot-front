@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { authAPI, studyMaterialAPI, matchAPI } from '../../../lib/api';
-import { getDisplayName } from '../../utils/nickname';
+import { authAPI, studyMaterialAPI, matchAPI } from '@/lib/api';
+import { getDisplayName } from '@/utils/nickname';
 
 interface User {
   Id: number;

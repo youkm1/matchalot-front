@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { matchAPI, authAPI } from '../../../lib/api';
+import { matchAPI, authAPI } from '@/lib/api';
 import { getDisplayName } from '@/utils/nickname';
 
 interface MatchResponse {

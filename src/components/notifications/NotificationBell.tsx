@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useNotifications } from '../../../hooks/useNotifications';
-import NotificationDropdown from './NotificationDropdown';
+import { useNotifications } from '@/hooks/useNotifications';
+import NotificationDropdown from '@/components/notifications/NotificationDropdown';
 
 export default function NotificationBell() {
   const [showDropdown, setShowDropdown] = useState(false);

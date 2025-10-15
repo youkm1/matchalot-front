@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { studyMaterialAPI, authAPI, matchAPI } from '../../../../../lib/api';
+import { studyMaterialAPI, authAPI, matchAPI } from '@/lib/api';
 import { getDisplayName } from '@/utils/nickname';
-import { useNotifications } from '../../../../../hooks/useNotifications';
-import { StudyMaterial, User } from '../../../../../types';
+import { useNotifications } from '@/hooks/useNotifications';
+import { StudyMaterial, User } from '@/types';
 
 // PotentialPartner는 StudyMaterial과 거의 같으므로 타입 별칭 사용
 type PotentialPartner = Omit<StudyMaterial, 'uploaderId' | 'tags'>;

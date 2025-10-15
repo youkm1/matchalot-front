@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { studyMaterialAPI } from '../../../lib/api';
+import { studyMaterialAPI } from '@/lib/api';
 import MaterialsList from '@/components/MaterialsList';
 
 export default function MaterialsPage() {

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { StudyMaterial } from '../../lib/server-api';
+import { StudyMaterial } from '@/lib/server-api';
 import { getDisplayName } from '@/utils/nickname';
 
 

@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { analyticsAPI } from '../lib/api';
+import { analyticsAPI } from '@/lib/api';
 
 export interface StatisticsSummary {
   totalRequests: number;

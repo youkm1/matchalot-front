@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useNotifications, Notification } from '../../../hooks/useNotifications';
+import { useNotifications, Notification } from '@/hooks/useNotifications';
 import ToastNotification from './ToastNotification';
 
 export default function ToastContainer() {

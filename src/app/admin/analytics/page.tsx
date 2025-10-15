@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useAnalytics } from '../../../hooks/useAnalytics';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 // 통계 카드 컴포넌트
 function StatCard({ title, value, icon }: { title: string; value: string | number; icon: string }) {

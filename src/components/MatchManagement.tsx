@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useState } from "react";
-import { matchAPI } from "../../lib/api";
+import { matchAPI } from "@/lib/api";
 import { getDisplayName } from "@/utils/nickname";
-import { useNotifications } from "../../hooks/useNotifications";
-import { MatchResponse } from "../../types";
+import { useNotifications } from "@/hooks/useNotifications";
+import { MatchResponse } from "@/types";
 
 //매치 총 관리 페이지
 export default function MatchManagement() {

@@ -4,8 +4,8 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { studyMaterialAPI, authAPI, matchAPI } from '../../../../lib/api';
-import { StudyMaterial, User } from '../../../../lib/server-api';
+import { studyMaterialAPI, authAPI, matchAPI } from '@/lib/api';
+import { StudyMaterial, User } from '@/lib/server-api';
 import Link from 'next/link';
 import { getDisplayName } from '@/utils/nickname';
 

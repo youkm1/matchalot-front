@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { notificationAPI } from '../lib/api';
+import { notificationAPI } from '@/lib/api';
 
 export interface Notification {
   id: number;

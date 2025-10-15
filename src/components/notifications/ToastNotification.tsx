@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Notification } from '../../../hooks/useNotifications';
+import { Notification } from '@/hooks/useNotifications';
 
 interface ToastNotificationProps {
   notification: Notification;

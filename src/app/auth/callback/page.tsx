@@ -3,7 +3,7 @@
 import { Suspense } from 'react';
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { User } from '../../../../types';
+import { User } from '@/types';
 
 const API_BASE_URL =  'https://api.match-a-lot.store';
 

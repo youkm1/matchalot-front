@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { authAPI } from '../../../lib/api';
+import { authAPI } from '@/lib/api';
 import { getDisplayName } from '@/utils/nickname';
-import { User } from '../../../types';
+import { User } from '@/types';
 
 export default function WelcomePage() {
   const router = useRouter();
