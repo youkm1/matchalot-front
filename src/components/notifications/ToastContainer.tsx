@@ -9,6 +9,21 @@ export default function ToastContainer() {
   const [shownNotificationIds, setShownNotificationIds] = useState<Set<number>>(new Set());
   const { notifications } = useNotifications();
 
+  // localStorage에서 이미 표시된 알림 ID들 로드
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('shownNotificationIds');
+      if (stored) {
+        try {
+          const ids = JSON.parse(stored);
+          setShownNotificationIds(new Set(ids));
+        } catch (e) {
+          console.error('Failed to parse shownNotificationIds:', e);
+        }
+      }
+    }
+  }, []);
+
   useEffect(() => {
     // 새로운 알림이 추가될 때만 토스트 표시
     const latestNotification = notifications[0];
@@ -16,7 +31,14 @@ export default function ToastContainer() {
       // 이미 표시된 알림인지 확인
       if (!shownNotificationIds.has(latestNotification.id)) {
         setToasts(prev => [latestNotification, ...prev].slice(0, 3)); // 최대 3개만 표시
-        setShownNotificationIds(prev => new Set([...prev, latestNotification.id]));
+        setShownNotificationIds(prev => {
+          const newSet = new Set([...prev, latestNotification.id]);
+          // localStorage에 저장
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('shownNotificationIds', JSON.stringify([...newSet]));
+          }
+          return newSet;
+        });
       }
     }
   }, [notifications, shownNotificationIds]);
