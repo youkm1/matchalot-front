@@ -65,6 +65,13 @@ export default function MatchesPage() {
           return [];
         })
       ]);
+      console.log('🔍 API 응답 데이터:', {
+        received,
+        sent,
+        active,
+        my
+      });
+      
       setReceivedRequests(Array.isArray(received)?received:[]);
       setSentRequests(Array.isArray(sent)?sent:[]);
       setActiveMatches(Array.isArray(active)?active:[]);
@@ -142,13 +149,29 @@ export default function MatchesPage() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    if (!dateString) {
+      console.warn('날짜 문자열이 없습니다:', dateString);
+      return '날짜 없음';
+    }
+    
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        console.warn('유효하지 않은 날짜:', dateString);
+        return '유효하지 않은 날짜';
+      }
+      
+      return date.toLocaleDateString('ko-KR', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      console.error('날짜 파싱 오류:', error, dateString);
+      return '날짜 파싱 오류';
+    }
   };
 
   if (isLoading) {
