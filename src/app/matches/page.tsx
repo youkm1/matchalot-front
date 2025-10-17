@@ -103,7 +103,8 @@ export default function MatchesPage() {
 
   const handleAccept = async (matchId: number) => {
     try {
-      await matchAPI.accept(matchId.toString());
+      var matched = ""+matchId;
+      await matchAPI.accept(matched.toString());
       await checkAuthAndFetchMatches();
     } catch (error) {
       console.error('매칭 수락 실패:', error);
@@ -113,7 +114,8 @@ export default function MatchesPage() {
 
   const handleReject = async (matchId: number) => {
     try {
-      await matchAPI.reject(matchId.toString());
+      var matched = ""+matchId;
+      await matchAPI.reject(matched.toString());
       await checkAuthAndFetchMatches(); // 데이터 새로고침
     } catch (error) {
       console.error('매칭 거절 실패:', error);
