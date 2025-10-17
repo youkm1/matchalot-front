@@ -6,7 +6,7 @@ import { matchAPI, authAPI } from '@/lib/api';
 import { getDisplayName } from '@/utils/nickname';
 
 interface MatchResponse {
-  id: number;
+  matchId: number;
   requesterId: number;
   receiverId: number;
   requesterMaterialId: number;
@@ -103,8 +103,8 @@ export default function MatchesPage() {
 
   const handleAccept = async (matchId: number) => {
     try {
-      var matched = ""+matchId;
-      await matchAPI.accept(matched.toString());
+      const matched = String(matchId);
+      await matchAPI.accept(matched);
       await checkAuthAndFetchMatches();
     } catch (error) {
       console.error('매칭 수락 실패:', error);
@@ -319,7 +319,7 @@ export default function MatchesPage() {
                 </div>
               ) : (
                 receivedRequests.map((match) => (
-                  <div key={match.id} className="border border-gray-200 rounded-lg p-6">
+                  <div key={match.matchId} className="border border-gray-200 rounded-lg p-6">
                     <div className="flex justify-between items-start mb-4">
                       <div>
                         <h3 className="text-lg font-semibold text-gray-900">
@@ -346,13 +346,13 @@ export default function MatchesPage() {
                     {match.status === 'PENDING' && (
                       <div className="flex gap-2">
                         <button
-                          onClick={() => handleAccept(match.id)}
+                          onClick={() => handleAccept(match.matchId)}
                           className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm transition-colors"
                         >
                           수락
                         </button>
                         <button
-                          onClick={() => handleReject(match.id)}
+                          onClick={() => handleReject(match.matchId)}
                           className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm transition-colors"
                         >
                           거절
@@ -376,7 +376,7 @@ export default function MatchesPage() {
                 </div>
               ) : (
                 sentRequests.map((match) => (
-                  <div key={match.id} className="border border-gray-200 rounded-lg p-6">
+                  <div key={match.matchId} className="border border-gray-200 rounded-lg p-6">
                     <div className="flex justify-between items-start mb-4">
                       <div>
                         <h3 className="text-lg font-semibold text-gray-900">
@@ -415,7 +415,7 @@ export default function MatchesPage() {
                 </div>
               ) : (
                 activeMatches.map((match) => (
-                  <div key={match.id} className="border border-gray-200 rounded-lg p-6">
+                  <div key={match.matchId} className="border border-gray-200 rounded-lg p-6">
                     <div className="flex justify-between items-start mb-4">
                       <div>
                         <h3 className="text-lg font-semibold text-gray-900">
@@ -441,7 +441,7 @@ export default function MatchesPage() {
 
                     {match.status === 'ACCEPTED' && (
                       <button
-                        onClick={() => handleComplete(match.id)}
+                        onClick={() => handleComplete(match.matchId)}
                         className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition-colors"
                       >
                         매칭 완료
@@ -463,7 +463,7 @@ export default function MatchesPage() {
                 </div>
               ) : (
                 completedMatches.map((match) => (
-                  <div key={match.id} className="border border-gray-200 rounded-lg p-6 bg-gray-50">
+                  <div key={match.matchId} className="border border-gray-200 rounded-lg p-6 bg-gray-50">
                     <div className="flex justify-between items-start mb-4">
                       <div>
                         <h3 className="text-lg font-semibold text-gray-900">
