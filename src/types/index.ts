@@ -30,7 +30,7 @@ export interface MatchResponse {
   status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'COMPLETED' | 'EXPIRED';
   requesterNickname: string;
   partnerNickname: string;
-  requesterMaterialTitle: string;
+  partnerMaterialTitle: string;
   partnerMaterialTitle: string;
   createdAt: string;
   updatedAt: string;

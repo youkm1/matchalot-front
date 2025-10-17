@@ -14,7 +14,8 @@ interface MatchResponse {
   status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'COMPLETED' | 'EXPIRED';
   requesterNickname: string;
   receiverNickname: string;
-  requesterMaterialTitle: string;
+  partnerMaterialTitle: string;
+  //백엔드에선 해당 타이틀 정보를 리턴값이 없어서 null값이
   receiverMaterialTitle: string;
   createdAt: string;
   updatedAt: string;
@@ -335,7 +336,7 @@ export default function MatchesPage() {
                     <div className="grid md:grid-cols-2 gap-4 mb-4">
                       <div className="bg-blue-50 p-4 rounded-lg">
                         <p className="text-sm font-medium text-blue-900 mb-1">상대방이 제안한 자료</p>
-                        <p className="text-blue-800 font-medium">{match.requesterMaterialTitle}</p>
+                        <p className="text-blue-800 font-medium">{match.partnerMaterialTitle}</p>
                       </div>
                       <div className="bg-green-50 p-4 rounded-lg">
                         <p className="text-sm font-medium text-green-900 mb-1">내가 받을 자료</p>
@@ -392,7 +393,7 @@ export default function MatchesPage() {
                     <div className="grid md:grid-cols-2 gap-4">
                       <div className="bg-blue-50 p-4 rounded-lg">
                         <p className="text-sm font-medium text-blue-900 mb-1">내가 제안한 자료</p>
-                        <p className="text-blue-800 font-medium">{match.requesterMaterialTitle}</p>
+                        <p className="text-blue-800 font-medium">{match.partnerMaterialTitle}</p>
                       </div>
                       <div className="bg-green-50 p-4 rounded-lg">
                         <p className="text-sm font-medium text-green-900 mb-1">요청한 상대방 자료</p>
@@ -431,7 +432,7 @@ export default function MatchesPage() {
                     <div className="grid md:grid-cols-2 gap-4 mb-4">
                       <div className="bg-blue-50 p-4 rounded-lg">
                         <p className="text-sm font-medium text-blue-900 mb-1">내 자료</p>
-                        <p className="text-blue-800 font-medium">{match.requesterMaterialTitle}</p>
+                        <p className="text-blue-800 font-medium">{match.partnerMaterialTitle}</p>
                       </div>
                       <div className="bg-green-50 p-4 rounded-lg">
                         <p className="text-sm font-medium text-green-900 mb-1">상대방 자료</p>
@@ -479,7 +480,7 @@ export default function MatchesPage() {
                     <div className="grid md:grid-cols-2 gap-4">
                       <div className="bg-blue-50 p-4 rounded-lg">
                         <p className="text-sm font-medium text-blue-900 mb-1">교환한 내 자료</p>
-                        <p className="text-blue-800 font-medium">{match.requesterMaterialTitle}</p>
+                        <p className="text-blue-800 font-medium">{match.partnerMaterialTitle}</p>
                       </div>
                       <div className="bg-green-50 p-4 rounded-lg">
                         <p className="text-sm font-medium text-green-900 mb-1">받은 상대방 자료</p>

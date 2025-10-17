@@ -242,7 +242,7 @@ export default function MatchManagement() {
                 <div className="grid md:grid-cols-2 gap-4 mb-4">
                   <div className="bg-blue-50 p-3 rounded-lg">
                     <p className="text-sm font-medium text-blue-900">요청자가 제안한 자료</p>
-                    <p className="text-blue-800">{match.requesterMaterialTitle}</p>
+                    <p className="text-blue-800">{match.partnerMaterialTitle}</p>
                   </div>
                   <div className="bg-green-50 p-3 rounded-lg">
                     <p className="text-sm font-medium text-green-900">요청받은 내 자료</p>
@@ -298,7 +298,7 @@ export default function MatchManagement() {
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="bg-blue-50 p-3 rounded-lg">
                     <p className="text-sm font-medium text-blue-900">내가 제안한 자료</p>
-                    <p className="text-blue-800">{match.requesterMaterialTitle}</p>
+                    <p className="text-blue-800">{match.partnerMaterialTitle}</p>
                   </div>
                   <div className="bg-green-50 p-3 rounded-lg">
                     <p className="text-sm font-medium text-green-900">요청한 상대방 자료</p>
@@ -337,7 +337,7 @@ export default function MatchManagement() {
                 <div className="grid md:grid-cols-2 gap-4 mb-4">
                   <div className="bg-blue-50 p-3 rounded-lg">
                     <p className="text-sm font-medium text-blue-900">내 자료</p>
-                    <p className="text-blue-800">{match.requesterMaterialTitle}</p>
+                    <p className="text-blue-800">{match.partnerMaterialTitle}</p>
                   </div>
                   <div className="bg-green-50 p-3 rounded-lg">
                     <p className="text-sm font-medium text-green-900">상대방 자료</p>
@@ -383,7 +383,7 @@ export default function MatchManagement() {
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="bg-gray-50 p-3 rounded-lg">
                     <p className="text-sm font-medium text-gray-700">교환한 내 자료</p>
-                    <p className="text-gray-900">{match.requesterMaterialTitle}</p>
+                    <p className="text-gray-900">{match.partnerMaterialTitle}</p>
                   </div>
                   <div className="bg-gray-50 p-3 rounded-lg">
                     <p className="text-sm font-medium text-gray-700">받은 자료</p>
