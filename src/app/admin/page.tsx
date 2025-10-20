@@ -4,9 +4,12 @@ import { useEffect, useState } from 'react';
 import { authAPI, adminAPI } from '@/lib/api';
 import { getDisplayName } from '@/utils/nickname';
 import { User, StudyMaterial } from '@/types';
+import { createPdfUrl } from '@/utils/pdf';
 
 // PendingMaterial은 StudyMaterial과 유사하므로 타입 별칭 사용
-type PendingMaterial = Omit<StudyMaterial, 'uploaderId' | 'tags'>;
+type PendingMaterial = Omit<StudyMaterial, 'uploaderId' | 'tags'> & {
+  tempPdfData?: string;
+};
 
 export default function AdminPage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -15,6 +18,7 @@ export default function AdminPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<'materials' | 'users'>('materials');
+  const [selectedPdf, setSelectedPdf] = useState<string | null>(null);
 
   useEffect(() => {
     checkAdminAccess();
@@ -63,7 +67,12 @@ export default function AdminPage() {
   const approveMaterial = async (materialId: number) => {
     try {
       await adminAPI.approveMaterial(materialId);
-      alert('족보가 승인되었습니다.');
+      alert('족보가 승인되었습니다. PDF 데이터가 자동으로 정리됩니다.');
+      
+      // PDF 모달이 열려있다면 닫기
+      setSelectedPdf(null);
+      
+      // 승인된 자료 목록에서 제거
       setPendingMaterials(prev => prev.filter(m => m.id !== materialId));
     } catch (error) {
       console.error('승인 실패:', error);
@@ -77,7 +86,12 @@ export default function AdminPage() {
 
     try {
       await adminAPI.rejectMaterial(materialId, reason);
-      alert('족보가 거절되었습니다.');
+      alert('족보가 거절되었습니다. PDF 데이터가 자동으로 정리됩니다.');
+      
+      // PDF 모달이 열려있다면 닫기
+      setSelectedPdf(null);
+      
+      // 거절된 자료 목록에서 제거
       setPendingMaterials(prev => prev.filter(m => m.id !== materialId));
     } catch (error) {
       console.error('거절 실패:', error);
@@ -184,14 +198,24 @@ export default function AdminPage() {
                   <div key={material.id} className="p-6">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                          <button
-                            onClick={() => window.open(`/materials/${material.id}`, '_blank')}
-                            className="text-blue-600 hover:text-blue-800 hover:underline transition-colors text-left"
-                          >
-                            {material.title}
-                          </button>
-                        </h3>
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="text-lg font-semibold text-gray-900 flex-1">
+                            <button
+                              onClick={() => window.open(`/materials/${material.id}`, '_blank')}
+                              className="text-blue-600 hover:text-blue-800 hover:underline transition-colors text-left"
+                            >
+                              {material.title}
+                            </button>
+                          </h3>
+                          {material.tempPdfData && (
+                            <button
+                              onClick={() => setSelectedPdf(material.tempPdfData!)}
+                              className="bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1 rounded-lg text-sm font-medium transition-colors"
+                            >
+                              📄 PDF 보기
+                            </button>
+                          )}
+                        </div>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600 mb-4">
                           <div>
                             <span className="font-medium">과목:</span> {material.subject}
@@ -326,6 +350,30 @@ export default function AdminPage() {
                 </table>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* PDF 뷰어 모달 */}
+      {selectedPdf && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg w-full max-w-4xl h-5/6 flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h3 className="text-lg font-semibold">PDF 미리보기</h3>
+              <button
+                onClick={() => setSelectedPdf(null)}
+                className="text-gray-500 hover:text-gray-700 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+            <div className="flex-1 p-4">
+              <iframe
+                src={createPdfUrl(selectedPdf)}
+                className="w-full h-full border rounded"
+                title="PDF 뷰어"
+              />
+            </div>
           </div>
         </div>
       )}

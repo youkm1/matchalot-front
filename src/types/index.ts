@@ -31,7 +31,6 @@ export interface MatchResponse {
   requesterNickname: string;
   partnerNickname: string;
   partnerMaterialTitle: string;
-  partnerMaterialTitle: string;
   createdAt: string;
   updatedAt: string;
 }
