@@ -11,6 +11,7 @@ interface MatchResponse {
   receiverId: number;
   requesterMaterialId: number;
   receiverMaterialId: number;
+  partnerMaterialId?: number; // 상대방 자료 ID 추가
   status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'COMPLETED' | 'EXPIRED';
   requesterNickname: string;
   receiverNickname: string;
@@ -437,6 +438,14 @@ export default function MatchesPage() {
                       <div className="bg-green-50 p-4 rounded-lg">
                         <p className="text-sm font-medium text-green-900 mb-1">상대방 자료</p>
                         <p className="text-green-800 font-medium">{match.receiverMaterialTitle}</p>
+                        {match.partnerMaterialId && (
+                          <button
+                            onClick={() => router.push(`/materials/${match.partnerMaterialId}`)}
+                            className="mt-2 bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                          >
+                            📖 내용 보기
+                          </button>
+                        )}
                       </div>
                     </div>
 
@@ -485,6 +494,14 @@ export default function MatchesPage() {
                       <div className="bg-green-50 p-4 rounded-lg">
                         <p className="text-sm font-medium text-green-900 mb-1">받은 상대방 자료</p>
                         <p className="text-green-800 font-medium">{match.receiverMaterialTitle}</p>
+                        {match.partnerMaterialId && (
+                          <button
+                            onClick={() => router.push(`/materials/${match.partnerMaterialId}`)}
+                            className="mt-2 bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                          >
+                            📖 해설 보기
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
