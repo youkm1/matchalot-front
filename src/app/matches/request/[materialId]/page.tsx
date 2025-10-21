@@ -86,10 +86,14 @@ export default function MatchRequestPage() {
 
       } catch (error) {
         if (error instanceof Error) {
-          if (error.message.includes('401') || error.message.includes('403')) {
+          if (error.message.includes('401')) {
             alert('로그인을 진행해주세요');
             router.push('/login');
             return;
+          } else if (error.message.includes('403')) {
+            setError('일시적인 신뢰도 문제가 발생했습니다. 잠시 후 다시 시도해주세요.');
+          } else if (error.message.includes('400')) {
+            setError('이미 매칭이 진행 중이거나 중복된 요청입니다.');
           } else if (error.message.includes('404')) {
             setError('요청한 자료를 찾을 수 없습니다.');
           } else {
@@ -153,6 +157,9 @@ export default function MatchRequestPage() {
           alert('로그인을 진행해주세요');
           router.push('/login');
           return;
+        } else if (error.message.includes('403')) {
+          // 403 에러는 권한 문제 (신뢰도 부족)
+          setError('신뢰도가 부족하여 매칭을 요청할 수 없습니다. 좋은 자료를 업로드하여 신뢰도를 높여보세요.');
         } else if (error.message.includes('400')) {
           // 백엔드 에러 메시지에서 구체적인 내용 추출
           const errorMessage = error.message;
@@ -164,8 +171,10 @@ export default function MatchRequestPage() {
             setError('상대방이 같은 과목의 족보를 가지고 있지 않아 매칭이 불가능합니다.');
           } else if (errorMessage.includes('신뢰도가 부족하여 매칭할 수 없습니다')) {
             setError('신뢰도가 부족합니다. 좋은 자료를 업로드하여 신뢰도를 높여보세요.');
+          } else if (errorMessage.includes('이미 진행 중인 매칭이 있습니다')) {
+            setError('이미 진행 중인 매칭이 있습니다. 기존 매칭을 완료한 후 다시 시도해주세요.');
           } else {
-            setError('잘못된 요청입니다. 입력 정보를 확인해주세요.');
+            setError('이미 진행 중인 매칭이 있습니다. 매칭 관리 페이지에서 확인해주세요.');
           }
         } else if (error.message.includes('409')) {
           setError('이미 매칭 요청을 보낸 자료입니다.');
