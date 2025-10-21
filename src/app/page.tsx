@@ -44,11 +44,40 @@ export default function HomePage() {
               </button>
             </Link>
           </div>
+
+          {/* 스크롤 다운 버튼 */}
+          <div className="flex justify-center">
+            <button
+              onClick={() => {
+                document.getElementById('features-section')?.scrollIntoView({ 
+                  behavior: 'smooth' 
+                });
+              }}
+              className="group flex flex-col items-center text-blue-600 hover:text-blue-700 transition-colors"
+            >
+              <div className="text-sm font-medium mb-2">서비스 소개 보기</div>
+              <div className="animate-bounce">
+                <svg 
+                  className="w-6 h-6 group-hover:scale-110 transition-transform" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2} 
+                    d="M19 14l-7 7m0 0l-7-7m7 7V3" 
+                  />
+                </svg>
+              </div>
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Features Section */}
-      <div className="bg-white py-20">
+      <div id="features-section" className="bg-white py-20">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
             왜 Match-a-lot인가요?

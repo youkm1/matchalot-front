@@ -52,12 +52,16 @@ export default function MaterialDetailPage() {
           console.log('소유자입니다');
           setHasAccess(true);
         } else {
-          try {
-            const hasCompleted = false;
-            setHasAccess(hasCompleted);
-          } catch (matchError) {
-            setHasAccess(false);
-          }
+          // 백엔드에서 이미 매칭 여부를 확인하여 
+          // 권한이 있으면 questions에 answer/explanation이 포함됨
+          // 권한이 없으면 answer/explanation이 null 또는 제거됨
+          const hasAccessFromBackend = data.questions && 
+                                       data.questions.length > 0 && 
+                                       data.questions[0].answer !== null &&
+                                       data.questions[0].answer !== undefined;
+          
+          console.log('매칭 권한 확인:', hasAccessFromBackend);
+          setHasAccess(hasAccessFromBackend);
         }
       } else {
         console.log('비로그인 유저');
