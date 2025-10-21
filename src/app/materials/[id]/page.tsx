@@ -257,6 +257,19 @@ export default function MaterialDetailPage() {
           </div>
         )}
 
+        {/* 접근 권한 있는 사용자용 - 매칭 완료 안내 */}
+        {isLoggedIn && hasAccess && !isOwner && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center">
+              <div className="text-green-500 mr-3">✅</div>
+              <div>
+                <p className="text-green-800 font-medium">매칭이 완료되어 정답과 해설을 확인할 수 있습니다!</p>
+                <p className="text-green-600 text-sm">아래 "정답 보기" 버튼을 눌러 해설을 확인해보세요.</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 문제 섹션 */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="p-6 border-b border-gray-200">
@@ -268,12 +281,12 @@ export default function MaterialDetailPage() {
                   isLoggedIn && hasAccess
                     ? showAnswers
                       ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                      : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                      : 'bg-green-100 text-green-700 hover:bg-green-200'
                     : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                 }`}
               >
                 {isLoggedIn && hasAccess
-                  ? (showAnswers ? '정답 숨기기' : '정답 보기')
+                  ? (showAnswers ? '정답 숨기기' : isOwner ? '정답 보기' : '✨ 정답 확인하기')
                   : !isLoggedIn
                   ? '🔒 로그인 필요'
                   : '🔒 매칭 후 확인 가능'
@@ -312,21 +325,35 @@ export default function MaterialDetailPage() {
                         )}
                       </div>
                     ) : (
-                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                        <div className="text-center text-gray-500">
-                          <div className="text-2xl mb-2">🔒</div>
-                          <p className="font-medium">
+                      <div className={`border rounded-lg p-4 ${
+                        isLoggedIn && hasAccess 
+                          ? 'bg-green-50 border-green-200' 
+                          : 'bg-gray-50 border-gray-200'
+                      }`}>
+                        <div className="text-center">
+                          <div className="text-2xl mb-2">
+                            {isLoggedIn && hasAccess ? '👆' : '🔒'}
+                          </div>
+                          <p className={`font-medium ${
+                            isLoggedIn && hasAccess 
+                              ? 'text-green-700' 
+                              : 'text-gray-500'
+                          }`}>
                             {!isLoggedIn 
                               ? '정답 및 해설은 로그인 후 확인 가능합니다'
+                              : isLoggedIn && hasAccess
+                              ? '위의 "✨ 정답 확인하기" 버튼을 눌러주세요!'
                               : '정답 및 해설은 매칭 완료 후 확인 가능합니다'
                             }
                           </p>
-                          <button
-                            onClick={!isLoggedIn ? () => router.push('/login') : handleMatchRequest}
-                            className="mt-2 text-blue-600 hover:text-blue-800 text-sm underline"
-                          >
-                            {!isLoggedIn ? '로그인하기' : '매칭 요청하기'}
-                          </button>
+                          {!(isLoggedIn && hasAccess) && (
+                            <button
+                              onClick={!isLoggedIn ? () => router.push('/login') : handleMatchRequest}
+                              className="mt-2 text-blue-600 hover:text-blue-800 text-sm underline"
+                            >
+                              {!isLoggedIn ? '로그인하기' : '매칭 요청하기'}
+                            </button>
+                          )}
                         </div>
                       </div>
                     )}
