@@ -35,9 +35,11 @@ export default function UploadPage() {
     // title 필드 제거됨
   });
   
-  // 문제 해답 목록
+  // 문제 해답 목록 (초기값 3개)
   const [solutions, setSolutions] = useState<QuestionSolution[]>([
-    { number: 1, answer: '', explanation: '' }
+    { number: 1, answer: '', explanation: '' },
+    { number: 2, answer: '', explanation: '' },
+    { number: 3, answer: '', explanation: '' }
   ]);
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -139,8 +141,8 @@ export default function UploadPage() {
 
   // 해답 삭제
   const removeSolution = (index: number) => {
-    if (solutions.length === 1) {
-      setError('최소 1개의 문제 해답은 있어야 합니다.');
+    if (solutions.length <= 3) {
+      setError('최소 3개의 문제 해답은 있어야 합니다.');
       return;
     }
     
@@ -169,8 +171,8 @@ export default function UploadPage() {
     }
 
     const validSolutions = solutions.filter(s => s.answer.trim() && s.explanation.trim());
-    if (validSolutions.length === 0) {
-      setError('최소 1개의 문제 해답을 입력해주세요.');
+    if (validSolutions.length < 3) {
+      setError('최소 3개의 문제 해답을 모두 입력해주세요.');
       return;
     }
 
@@ -455,7 +457,7 @@ export default function UploadPage() {
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-semibold">📝 문제 해답 작성</h3>
               <div className="text-sm text-gray-600">
-                {solutions.length}최대 40 문제
+                {solutions.length}/최대 40 문제
               </div>
             </div>
 
@@ -466,7 +468,7 @@ export default function UploadPage() {
                 <li>• <strong>답</strong>: 정답을 명확하게 작성해주세요</li>
                 <li>• <strong>설명</strong>: 왜 이 답이 나오는지 단계별로 설명해주세요</li>
                 <li>• 모든 문제가 아닌 <strong>중요한 문제</strong>만 선별해서 작성해도 됩니다</li>
-                <li>• 최소 하나의 문제를 입력해주세요</li>
+                <li>• <strong className="text-red-700">최소 3개의 문제를 반드시 입력해주세요</strong></li>
               </ul>
             </div>
 
@@ -486,7 +488,7 @@ export default function UploadPage() {
                       />
                       <span className="text-sm text-gray-600">번</span>
                     </div>
-                    {solutions.length > 1 && (
+                    {solutions.length > 3 && (
                       <button
                         onClick={() => removeSolution(index)}
                         className="text-red-600 hover:text-red-800 text-sm"
