@@ -105,21 +105,18 @@ export default function UploadPage() {
         return;
       }
       
-      // 256KB 초과 시 경고
+      // 256KB 초과 시 업로드 차단
       if (file.size > 256 * 1024) {
-        const fileSizeMB = (file.size / 1024 / 1024).toFixed(2);
-        const shouldContinue = window.confirm(
-          `⚠️ 파일 크기가 ${fileSizeMB}MB로 256KB를 초과합니다.\n\n` +
-          `서버 제한으로 인해 업로드가 실패할 수 있습니다.\n` +
-          `PDF 압축 도구를 사용해 파일 크기를 줄이는 것을 권장합니다.\n\n` +
-          `그래도 계속 진행하시겠습니까?`
+        const fileSizeKB = (file.size / 1024).toFixed(0);
+        alert(
+          `⚠️ 파일 크기가 ${fileSizeKB}KB로 256KB를 초과합니다.\n\n` +
+          `256KB 미만의 PDF 파일만 업로드 가능합니다.\n` +
+          `PDF 압축 후 다시 시도해주세요.`
         );
         
-        if (!shouldContinue) {
-          // 파일 선택 초기화
-          event.target.value = '';
-          return;
-        }
+        // 파일 선택 초기화
+        event.target.value = '';
+        return;
       }
       
       try {
@@ -310,7 +307,7 @@ export default function UploadPage() {
                 족보 PDF 파일을 선택하세요
               </h3>
               <p className="text-gray-600 mb-6">
-                최대 10MB, PDF 형식만 업로드 가능합니다
+                최대 256KB, PDF 형식만 업로드 가능합니다
               </p>
               
               <label className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg cursor-pointer transition-colors">
