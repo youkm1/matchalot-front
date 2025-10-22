@@ -78,6 +78,8 @@ export async function getServerSubjects(): Promise<Array<{id: string, name: stri
         subject === 'KOREAN_CULTURE_UNDERSTANDING' ? '한국문화의이해' :
         subject === 'CLASSIC_FIELD_STORY' ? '고전의현장과스토리' :
         subject === 'DIGITAL_PHILOSOPHY' ? '디지털철학' :
+        subject === 'COMPUTER_MATH_YO' ? '컴퓨터수학-최영우 교수님' :
+        subject === 'COMPUTER_MATH_HJ' ? '컴퓨터수학-채희준 교수님' :
         subject === 'WESTERN_HISTORY_CULTURE' ? '서양의역사와문화' : subject
     }));
   } catch (error) {
