@@ -105,6 +105,23 @@ export default function UploadPage() {
         return;
       }
       
+      // 256KB 초과 시 경고
+      if (file.size > 256 * 1024) {
+        const fileSizeMB = (file.size / 1024 / 1024).toFixed(2);
+        const shouldContinue = window.confirm(
+          `⚠️ 파일 크기가 ${fileSizeMB}MB로 256KB를 초과합니다.\n\n` +
+          `서버 제한으로 인해 업로드가 실패할 수 있습니다.\n` +
+          `PDF 압축 도구를 사용해 파일 크기를 줄이는 것을 권장합니다.\n\n` +
+          `그래도 계속 진행하시겠습니까?`
+        );
+        
+        if (!shouldContinue) {
+          // 파일 선택 초기화
+          event.target.value = '';
+          return;
+        }
+      }
+      
       try {
         setPdfFile(file);
         const url = URL.createObjectURL(file);
