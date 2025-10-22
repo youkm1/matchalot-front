@@ -78,11 +78,12 @@ export default function UploadPage() {
         setError('기본 데이터 로드에 실패했습니다.');
         
         setSubjects([
-          { id: '영상정보처리', name: '영상정보처리' },
-          { id: '리눅스', name: '리눅스' },
+          { id: '컴퓨터네트워크Ⅰ', name: '컴퓨터네트워크Ⅰ' },
+          { id: '소셜미디어의이해와활용', name: '소셜미디어의이해와활용' },
           { id: '한국문화의이해', name: '한국문화의이해'},
           { id: '고전의현장과스토리', name: '고전의현장과스토리'},
-          { id: '디지털철학', name: '디지털철학'}
+          { id: '디지털철학', name: '디지털철학'},
+          { id: '서양의역사와문화', name: '서양의역사와문화'}
         ]);
         setExamTypes([
           { id: '중간고사', name: '중간고사' },
