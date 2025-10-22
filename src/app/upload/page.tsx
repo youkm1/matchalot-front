@@ -125,8 +125,8 @@ export default function UploadPage() {
 
   // 해답 추가
   const addSolution = () => {
-    if (solutions.length >= 20) {
-      setError('최대 20개까지 문제 해답을 추가할 수 있습니다.');
+    if (solutions.length >= 40) {
+      setError('최대 40개까지 문제 해답을 추가할 수 있습니다.');
       return;
     }
     
@@ -455,7 +455,7 @@ export default function UploadPage() {
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-semibold">📝 문제 해답 작성</h3>
               <div className="text-sm text-gray-600">
-                {solutions.length}/최대 20 문제
+                {solutions.length}최대 40 문제
               </div>
             </div>
 
@@ -532,7 +532,7 @@ export default function UploadPage() {
             <div className="mt-6 flex justify-between items-center">
               <button
                 onClick={addSolution}
-                disabled={solutions.length >= 20}
+                disabled={solutions.length >= 40}
                 className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg transition-colors"
               >
                 + 문제 추가
